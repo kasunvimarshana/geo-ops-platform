@@ -4,72 +4,74 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Invoice extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $fillable = [
-        'organization_id',
-        'job_id',
-        'land_id',
         'invoice_number',
-        'customer_name',
-        'customer_phone',
-        'invoice_date',
-        'due_date',
-        'area_acres',
-        'area_hectares',
-        'rate_per_unit',
+        'organization_id',
+        'subscription_id',
+        'job_id',
+        'type',
+        'description',
         'subtotal',
-        'tax_rate',
-        'tax_amount',
-        'total_amount',
-        'paid_amount',
-        'balance',
+        'tax',
+        'discount',
+        'total',
         'status',
-        'notes',
-        'pdf_path',
-        'printed_at',
-        'sync_status',
-        'offline_id',
+        'payment_method',
+        'issued_at',
+        'due_date',
+        'paid_at',
+        'items',
     ];
 
     protected $casts = [
-        'invoice_date' => 'date',
-        'due_date' => 'date',
-        'area_acres' => 'decimal:4',
-        'area_hectares' => 'decimal:4',
-        'rate_per_unit' => 'decimal:2',
         'subtotal' => 'decimal:2',
-        'tax_rate' => 'decimal:2',
-        'tax_amount' => 'decimal:2',
-        'total_amount' => 'decimal:2',
-        'paid_amount' => 'decimal:2',
-        'balance' => 'decimal:2',
-        'printed_at' => 'datetime',
+        'tax' => 'decimal:2',
+        'discount' => 'decimal:2',
+        'total' => 'decimal:2',
+        'items' => 'array',
+        'issued_at' => 'datetime',
+        'due_date' => 'datetime',
+        'paid_at' => 'datetime',
     ];
 
-    public function organization(): BelongsTo
+    /**
+     * Relationships
+     */
+    public function organization()
     {
         return $this->belongsTo(Organization::class);
     }
 
-    public function job(): BelongsTo
+    public function subscription()
+    {
+        return $this->belongsTo(Subscription::class);
+    }
+
+    public function job()
     {
         return $this->belongsTo(Job::class);
     }
 
-    public function land(): BelongsTo
+    /**
+     * Check if invoice is paid
+     */
+    public function isPaid(): bool
     {
-        return $this->belongsTo(Land::class);
+        return $this->status === 'paid';
     }
 
-    public function payments(): HasMany
+    /**
+     * Check if invoice is overdue
+     */
+    public function isOverdue(): bool
     {
-        return $this->hasMany(Payment::class);
+        return $this->status === 'pending' && 
+               $this->due_date && 
+               $this->due_date->isPast();
     }
 }

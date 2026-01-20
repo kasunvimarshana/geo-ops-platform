@@ -1,300 +1,185 @@
 # GeoOps Platform
 
-> Production-ready GPS-based land measurement and agricultural field-service management platform
+Production-ready mobile and web platform for GPS-based land measurement and agricultural field services. Built with React Native (Expo, TypeScript) and Laravel (LTS). Supports walk-around and polygon GPS measurement, maps, driver tracking, job management, billing, expenses, payments, subscriptions, and Bluetooth ESC/POS printing with PDF fallback.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Backend: Laravel 11](https://img.shields.io/badge/Backend-Laravel%2011-red.svg)](https://laravel.com)
-[![Mobile: React Native](https://img.shields.io/badge/Mobile-React%20Native-blue.svg)](https://reactnative.dev)
-[![Expo](https://img.shields.io/badge/Expo-~51.0-000020.svg)](https://expo.dev)
+## 🚀 Features
 
-## 🎯 Overview
+### GPS Land Measurement
 
-GeoOps Platform is a comprehensive GPS-based land measurement and agricultural field-service management application designed for farmers, machine owners, drivers, and brokers in Sri Lanka. The platform follows Clean Architecture principles and implements SOLID, DRY, and KISS design patterns for scalability, maintainability, and long-term extensibility.
+- **Walk-Around Measurement**: Walk the perimeter of a field while GPS tracks your path
+- **Polygon Measurement**: Manually place points on a map to define field boundaries
+- **High Accuracy**: Configurable GPS accuracy with battery optimization
+- **Real-Time Calculations**: Automatic area and perimeter calculations using geospatial algorithms
+- **Offline Support**: Store measurements locally and sync when online
 
-## ✨ Key Features
+### Field Management
 
-### 📍 GPS Land Measurement
+- Create and manage agricultural fields
+- Store field boundaries as GeoJSON polygons
+- Track crop types and field notes
+- View field history and measurements
 
-- **Walk-around GPS tracking** with real-time polygon drawing
-- **Point-based measurement** for manual land marking
-- **Accurate area calculation** in acres and hectares using Shoelace formula
-- **Measurement history** with editable records
-- **Offline measurement** capability with background sync
+### Job Management
 
-### 🗺️ Maps & Visualization
+- Assign tasks to field workers and drivers
+- Track job status (pending, in progress, completed)
+- Set priorities and due dates
+- Link jobs to specific fields
 
-- **Interactive maps** (Google Maps/Mapbox integration)
-- **Real-time visualization** of measured lands, jobs, and drivers
-- **Color-coded status** indicators for easy identification
-- **Spatial queries** for nearby lands and active jobs
-- **Historical tracking** visualization
+### Driver Tracking
 
-### 💼 Job & Field Work Management
+- Real-time GPS tracking of field workers
+- Background location updates with foreground service
+- Battery-optimized tracking
+- Location history
 
-- **Job creation and assignment** to drivers and machines
-- **Lifecycle management** (Pending → In Progress → Completed)
-- **Driver GPS tracking** during active jobs
-- **Duration and distance** calculation
-- **Job history** and performance reports
+### Billing & Payments
 
-### 💰 Billing & Invoicing
+- Subscription management (basic, pro, enterprise plans)
+- Invoice generation and tracking
+- Multiple payment methods support
+- Payment history and receipts
 
-- **Automated invoice generation** based on measured area
-- **Configurable rates** per acre/hectare
-- **PDF invoice generation** with professional templates
-- **Bluetooth thermal printer** support (ESC/POS compatible)
-- **Invoice status tracking** (Draft → Sent → Paid → Overdue)
+### Printing & Reports
 
-### 💳 Expense Management
+- Bluetooth ESC/POS printer support
+- PDF report generation
+- Field measurement reports
+- Invoice printing
 
-- **Fuel tracking** and consumption analysis
-- **Spare parts and maintenance** logging
-- **Expense categorization** by type, machine, and driver
-- **Financial reporting** with income vs expense analysis
+### Multi-Language Support
 
-### 📊 Payments & Ledger
-
-- **Multiple payment methods** (Cash, Bank, Digital, Check)
-- **Customer balance tracking** and payment history
-- **Financial summaries** with customizable date ranges
-- **Ledger reports** per customer, driver, and machine
-
-### 📦 Subscription Management
-
-- **Package tiers**: Free, Basic, Pro
-- **Usage limits enforcement** (measurements, drivers, exports)
-- **Automatic expiry handling** with grace periods
-- **Feature gating** based on subscription level
-
-### 🔄 Offline-First Architecture
-
-- **Local SQLite database** for offline data persistence
-- **MMKV storage** for fast key-value data
-- **Background synchronization** with conflict resolution
-- **Retry mechanism** with exponential backoff
-- **Idempotent sync** to prevent duplicates
-
-### 🖨️ Bluetooth Printing
-
-- **ESC/POS thermal printer** integration
-- **Device discovery and pairing** management
-- **Print queue** with retry mechanism
-- **PDF fallback** when printer unavailable
-- **Receipt and invoice** printing support
-
-### 🔐 Security & Access Control
-
-- **JWT authentication** with refresh tokens
-- **Role-based access control** (RBAC)
-- **Organization-level data isolation** (multi-tenancy)
-- **Encrypted local storage** for sensitive data
-- **API rate limiting** to prevent abuse
-
-### 🌍 Localization
-
-- **Sinhala (සිංහල)** - Primary language
-- **English** - Secondary language
-- **RTL support** not required
-- **Number and date formatting** per locale
+- English and Sinhala (සිංහල) languages
+- Complete UI translations
+- Easy to add more languages
 
 ## 🏗️ Architecture
 
-### Technology Stack
+### Clean Architecture
 
-**Backend (Laravel 11 LTS)**
+- **Domain Layer**: Business entities and rules
+- **Application Layer**: Use cases and business logic
+- **Infrastructure Layer**: External services (API, GPS, storage)
+- **Presentation Layer**: UI components and screens
 
-- PHP 8.3+
-- MySQL 8.0+ / PostgreSQL 14+ with Spatial Extensions
-- Redis for caching and queues
-- JWT Authentication
-- Clean Architecture with Service/Repository pattern
+### SOLID Principles
 
-**Mobile App (React Native + Expo)**
+- Single Responsibility Principle
+- Open/Closed Principle
+- Liskov Substitution Principle
+- Interface Segregation Principle
+- Dependency Inversion Principle
 
-- TypeScript
-- Expo 51
-- Zustand for state management
-- SQLite + MMKV for offline storage
-- React Native Maps
-- Bluetooth ESC/POS Printer integration
+### Design Patterns
 
-### Clean Architecture Layers
+- Repository Pattern
+- Factory Pattern
+- Observer Pattern
+- Dependency Injection
 
-```
-┌─────────────────────────────────────────┐
-│         Presentation Layer              │
-│  (Controllers/UI Components)            │
-├─────────────────────────────────────────┤
-│         Application Layer               │
-│  (Services/Business Logic)              │
-├─────────────────────────────────────────┤
-│         Domain Layer                    │
-│  (Models/DTOs/Policies)                 │
-├─────────────────────────────────────────┤
-│         Infrastructure Layer            │
-│  (Repositories/Database/External APIs)  │
-└─────────────────────────────────────────┘
-```
+## 🛠️ Tech Stack
 
-### Design Principles
+### Mobile (Frontend)
 
-- **SOLID**: Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion
-- **DRY**: Don't Repeat Yourself - reusable components and services
-- **KISS**: Keep It Simple, Stupid - avoid over-engineering
-- **Separation of Concerns**: Clear boundaries between layers
-- **Dependency Injection**: Loose coupling for testability
+- **Framework**: React Native with Expo SDK 54
+- **Language**: TypeScript
+- **Navigation**: React Navigation
+- **State Management**: Zustand
+- **Storage**: SQLite + MMKV (encrypted)
+- **HTTP Client**: Axios
+- **GPS**: Expo Location
+- **Maps**: React Native Maps
+- **Printing**: React Native BLE PLX
+- **PDF**: Expo Print
 
-## 📁 Project Structure
+### Backend (API)
 
-```
-geo-ops-platform/
-├── backend/                    # Laravel API
-│   ├── app/
-│   │   ├── Http/
-│   │   │   ├── Controllers/   # Thin controllers (routing only)
-│   │   │   ├── Middleware/    # Auth, RBAC, Rate limiting
-│   │   │   └── Requests/      # Form validation
-│   │   ├── Services/          # Business logic layer
-│   │   ├── Repositories/      # Data access layer
-│   │   ├── Models/            # Eloquent models
-│   │   ├── DTOs/              # Data Transfer Objects
-│   │   ├── Jobs/              # Queue jobs
-│   │   └── Policies/          # Authorization policies
-│   ├── database/
-│   │   ├── migrations/        # Database schema
-│   │   └── seeders/           # Sample data
-│   └── routes/
-│       └── api.php            # API endpoints
-│
-├── mobile/                     # React Native Expo App
-│   ├── src/
-│   │   ├── features/          # Feature-based modules
-│   │   │   ├── auth/
-│   │   │   ├── measurement/
-│   │   │   ├── maps/
-│   │   │   ├── jobs/
-│   │   │   ├── billing/
-│   │   │   └── sync/
-│   │   ├── services/          # API, GPS, Storage, Sync, Printer
-│   │   ├── stores/            # Zustand state management
-│   │   ├── components/        # Reusable UI components
-│   │   ├── utils/             # Helper functions
-│   │   └── i18n/              # Localization
-│   └── app.json
-│
-└── docs/                       # Documentation
-    ├── ARCHITECTURE.md         # System architecture
-    ├── DATABASE.md             # Database schema and ERD
-    ├── API.md                  # API endpoints documentation
-    └── DEPLOYMENT.md           # Deployment guide
-```
+- **Framework**: Laravel 10 (LTS)
+- **Language**: PHP 8.3
+- **Authentication**: JWT (tymon/jwt-auth)
+- **Authorization**: RBAC (spatie/laravel-permission)
+- **Database**: MySQL 8.0+ / PostgreSQL 13+ with spatial support
+- **Queue**: Redis / Database
+- **Cache**: Redis / File
 
-## 🚀 Getting Started
+## 📦 Installation
 
 ### Prerequisites
 
-**Backend**
+- Node.js 18+
+- PHP 8.1+
+- Composer
+- MySQL 8.0+ or PostgreSQL 13+
+- Redis (optional)
 
-- PHP 8.3 or higher
-- Composer 2.x
-- MySQL 8.0+ or PostgreSQL 14+
-- Redis 6.0+
+### Quick Start
 
-**Mobile**
+1. **Clone the repository**
 
-- Node.js 20+
-- npm or yarn
-- Expo CLI
-- Android Studio / Xcode (for building)
+   ```bash
+   git clone https://github.com/kasunvimarshana/geo-ops-platform.git
+   cd geo-ops-platform
+   ```
 
-### Backend Setup
+2. **Set up the backend**
 
-1. Clone the repository:
+   ```bash
+   cd backend
+   composer install
+   cp .env.example .env
+   php artisan key:generate
+   php artisan jwt:secret
+   php artisan migrate
+   php artisan serve
+   ```
 
-```bash
-git clone https://github.com/kasunvimarshana/geo-ops-platform.git
-cd geo-ops-platform/backend
-```
+3. **Set up the mobile app**
+   ```bash
+   cd mobile
+   npm install
+   # Update EXPO_PUBLIC_API_URL in .env
+   npm start
+   ```
 
-2. Install dependencies:
-
-```bash
-composer install
-```
-
-3. Configure environment:
-
-```bash
-cp .env.example .env
-php artisan key:generate
-php artisan jwt:secret
-```
-
-4. Update `.env` with your database and service credentials
-
-5. Run migrations and seeders:
-
-```bash
-php artisan migrate
-php artisan db:seed
-```
-
-6. Start the development server:
-
-```bash
-php artisan serve
-```
-
-### Mobile App Setup
-
-1. Navigate to mobile directory:
-
-```bash
-cd mobile
-```
-
-2. Install dependencies:
-
-```bash
-npm install
-```
-
-3. Configure environment:
-
-```bash
-cp .env.example .env
-```
-
-4. Update `.env` with API URL and service keys
-
-5. Start Expo development server:
-
-```bash
-npm start
-```
-
-6. Run on device/simulator:
-
-```bash
-npm run android  # For Android
-npm run ios      # For iOS
-```
+For detailed setup instructions, see [docs/SETUP.md](docs/SETUP.md)
 
 ## 📚 Documentation
 
-**Complete documentation is available in the [/documents](documents/) directory.**
+- [Architecture Documentation](docs/ARCHITECTURE.md) - System architecture and design
+- [Setup Guide](docs/SETUP.md) - Installation and configuration
+- [API Documentation](docs/API.md) - API endpoints and usage
 
-### Quick Links
+## 🔒 Security
 
-- **[📖 Getting Started](documents/getting-started.md)** - Quick setup guide (5 minutes)
-- **[🏗️ Architecture](documents/architecture.md)** - System design and patterns
-- **[🔌 API Reference](documents/api-reference.md)** - Complete REST API documentation
-- **[💾 Database Schema](documents/database-schema.md)** - ERD and table definitions
-- **[🚀 Deployment Guide](documents/deployment.md)** - Production deployment instructions
-- **[🧪 Testing Guide](documents/testing-guide.md)** - Testing strategy and examples
-- **[📊 Implementation Status](documents/implementation-status.md)** - Project completion status
+- JWT-based authentication with refresh tokens
+- Encrypted local storage (MMKV)
+- Role-Based Access Control (RBAC)
+- Organization data isolation
+- SQL injection protection
+- XSS protection
+- HTTPS API communication
 
-**📁 [View Complete Documentation Index](documents/README.md)**
+## 🌍 GPS Features
+
+### Battery Optimization
+
+- Configurable accuracy levels (HIGH, MEDIUM, LOW)
+- Dynamic update intervals
+- Distance filter to reduce unnecessary updates
+- Background tracking with foreground service
+
+### Measurement Algorithms
+
+- **Distance**: Haversine formula for accurate distance between GPS points
+- **Area**: Shoelace formula for polygon area calculation
+- **Perimeter**: Sum of distances between consecutive boundary points
+
+## 🗺️ Spatial Data
+
+- GeoJSON format for field boundaries
+- Spatial database support (MySQL spatial extensions)
+- Compatible with GIS software
+- Export to KML/GeoJSON formats
 
 ## 🧪 Testing
 
@@ -312,85 +197,70 @@ cd mobile
 npm test
 ```
 
-## 🔒 Security
+## 📱 Screenshots
 
-- JWT authentication with refresh tokens
-- HTTPS/TLS encryption for all API communications
-- SQL injection prevention through ORM
-- CSRF protection
-- Rate limiting on API endpoints
-- Secure local storage encryption
-- Organization-level data isolation
-
-## 📈 Scalability
-
-- Horizontal scaling support
-- Database read replicas
-- Redis caching layer
-- Queue workers for async processing
-- CDN for static assets
-- Microservices-ready architecture
+_Coming soon_
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please read our contributing guidelines before submitting pull requests.
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 👥 User Roles
+## 🙏 Acknowledgments
 
-- **Admin** - System-wide control and management
-- **Owner (Farmer/Machine Owner)** - Organization management
-- **Driver/Operator** - Field work execution
-- **Broker/Agent** - Customer relationship management
-- **Accountant** - Financial reporting and management
-
-## 🌟 Core Modules
-
-1. **Authentication & Authorization** - JWT + RBAC
-2. **GPS Land Measurement** - Walk-around & point-based
-3. **Maps & Visualization** - Real-time tracking
-4. **Job Management** - Lifecycle and assignment
-5. **Billing & Invoicing** - Automated generation
-6. **Expense Management** - Categorized tracking
-7. **Payments & Ledger** - Financial management
-8. **Subscription Management** - Package enforcement
-9. **Offline-First Sync** - Background synchronization
-10. **Bluetooth Printing** - Thermal printer integration
-
-## 🎯 Target Users
-
-- Farmers and landowners in Sri Lanka
-- Agricultural machinery owners
-- Tractor and equipment operators
-- Brokers and field agents
-- Agricultural service businesses
+- Expo team for the excellent mobile development framework
+- Laravel team for the powerful PHP framework
+- Contributors and community members
 
 ## 📞 Support
 
-For support, email support@geo-ops.lk or open an issue in the GitHub repository.
+For support, email kasunvmail@gmail.com or open an issue on GitHub.
 
-## 🔄 Version
+## 🗓️ Roadmap
 
-Current Version: **1.0.0**
+### Phase 1: Core Features ✅
 
-## 📅 Roadmap
+- [x] Project structure and setup
+- [x] Authentication and authorization
+- [x] GPS tracking and measurement
+- [x] Field management API
+- [x] Multi-language support (English, Sinhala)
 
-- [ ] Multi-language support expansion
-- [ ] Weather integration for field planning
-- [ ] IoT sensor integration
-- [ ] AI-powered yield prediction
-- [ ] Satellite imagery integration
-- [ ] Drone mapping support
-- [ ] Marketplace for equipment rental
-- [ ] Community features for knowledge sharing
+### Phase 2: Mobile UI (In Progress)
 
----
+- [ ] Authentication screens
+- [ ] GPS measurement screens
+- [ ] Field listing and details
+- [ ] Job management screens
+- [ ] Maps integration
 
-**Built with ❤️ for the agricultural community of Sri Lanka**
+### Phase 3: Advanced Features
 
-## GPS Land Measurement & Field Service Management Platform
+- [ ] Bluetooth printer integration
+- [ ] PDF report generation
+- [ ] Offline synchronization
+- [ ] Payment integration
+- [ ] Real-time driver tracking
 
-_(Laravel Backend + React Native (Expo) Mobile App)_
+### Phase 4: Production
+
+- [ ] Comprehensive testing
+- [ ] Security audit
+- [ ] Performance optimization
+- [ ] CI/CD pipeline
+- [ ] App Store deployment
+
+## 🔗 Links
+
+- [Repository](https://github.com/kasunvimarshana/geo-ops-platform)
+- [Documentation](docs/)
+- [Issue Tracker](https://github.com/kasunvimarshana/geo-ops-platform/issues)

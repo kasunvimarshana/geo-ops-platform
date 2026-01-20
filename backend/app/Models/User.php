@@ -2,78 +2,94 @@
 
 namespace App\Models;
 
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable
+class User extends Authenticatable implements JWTSubject
 {
-    use HasFactory, Notifiable, SoftDeletes;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles, SoftDeletes;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
-        'organization_id',
-        'role_id',
         'name',
         'email',
         'phone',
         'password',
-        'language',
+        'organization_id',
+        'role',
         'is_active',
-        'last_login_at',
     ];
 
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
     protected $casts = [
-        'is_active' => 'boolean',
-        'last_login_at' => 'datetime',
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'is_active' => 'boolean',
     ];
 
-    public function organization(): BelongsTo
+    /**
+     * Get the identifier that will be stored in the subject claim of the JWT.
+     */
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    /**
+     * Return a key value array, containing any custom claims to be added to the JWT.
+     */
+    public function getJWTCustomClaims()
+    {
+        return [
+            'organization_id' => $this->organization_id,
+            'role' => $this->role,
+        ];
+    }
+
+    /**
+     * Relationships
+     */
+    public function organization()
     {
         return $this->belongsTo(Organization::class);
     }
 
-    public function role(): BelongsTo
+    public function fields()
     {
-        return $this->belongsTo(Role::class);
+        return $this->hasMany(Field::class);
     }
 
-    public function measuredLands(): HasMany
+    public function createdJobs()
     {
-        return $this->hasMany(Land::class, 'measured_by');
+        return $this->hasMany(Job::class, 'created_by');
     }
 
-    public function drivenJobs(): HasMany
+    public function assignedJobs()
     {
-        return $this->hasMany(Job::class, 'driver_id');
-    }
-
-    public function assignedJobs(): HasMany
-    {
-        return $this->hasMany(Job::class, 'assigned_by');
-    }
-
-    public function recordedExpenses(): HasMany
-    {
-        return $this->hasMany(Expense::class, 'recorded_by');
-    }
-
-    public function receivedPayments(): HasMany
-    {
-        return $this->hasMany(Payment::class, 'received_by');
-    }
-
-    public function syncLogs(): HasMany
-    {
-        return $this->hasMany(SyncLog::class);
+        return $this->hasMany(Job::class, 'assigned_to');
     }
 }

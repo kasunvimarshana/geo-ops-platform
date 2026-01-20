@@ -4,8 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Organization extends Model
@@ -14,60 +12,42 @@ class Organization extends Model
 
     protected $fillable = [
         'name',
-        'slug',
-        'subscription_package',
-        'subscription_expires_at',
-        'status',
-        'settings',
+        'email',
+        'phone',
+        'address',
+        'type',
+        'is_active',
     ];
 
     protected $casts = [
-        'subscription_expires_at' => 'datetime',
-        'settings' => 'array',
+        'is_active' => 'boolean',
     ];
 
-    public function users(): HasMany
+    /**
+     * Relationships
+     */
+    public function users()
     {
         return $this->hasMany(User::class);
     }
 
-    public function lands(): HasMany
+    public function fields()
     {
-        return $this->hasMany(Land::class);
+        return $this->hasMany(Field::class);
     }
 
-    public function machines(): HasMany
-    {
-        return $this->hasMany(Machine::class);
-    }
-
-    public function jobs(): HasMany
+    public function jobs()
     {
         return $this->hasMany(Job::class);
     }
 
-    public function invoices(): HasMany
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    public function invoices()
     {
         return $this->hasMany(Invoice::class);
-    }
-
-    public function expenses(): HasMany
-    {
-        return $this->hasMany(Expense::class);
-    }
-
-    public function payments(): HasMany
-    {
-        return $this->hasMany(Payment::class);
-    }
-
-    public function subscriptionLimit(): HasOne
-    {
-        return $this->hasOne(SubscriptionLimit::class);
-    }
-
-    public function syncLogs(): HasMany
-    {
-        return $this->hasMany(SyncLog::class);
     }
 }

@@ -4,9 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Job extends Model
@@ -14,71 +11,52 @@ class Job extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'organization_id',
-        'land_id',
-        'machine_id',
-        'driver_id',
-        'assigned_by',
         'title',
         'description',
-        'job_date',
+        'organization_id',
+        'field_id',
+        'created_by',
+        'assigned_to',
         'status',
-        'start_time',
-        'end_time',
-        'duration_minutes',
-        'customer_name',
-        'customer_phone',
+        'priority',
+        'due_date',
+        'started_at',
+        'completed_at',
         'location',
-        'location_name',
-        'notes',
-        'sync_status',
-        'offline_id',
     ];
 
     protected $casts = [
-        'job_date' => 'date',
-        'start_time' => 'datetime',
-        'end_time' => 'datetime',
-        'duration_minutes' => 'integer',
+        'location' => 'array',
+        'due_date' => 'datetime',
+        'started_at' => 'datetime',
+        'completed_at' => 'datetime',
     ];
 
-    public function organization(): BelongsTo
+    /**
+     * Relationships
+     */
+    public function organization()
     {
         return $this->belongsTo(Organization::class);
     }
 
-    public function land(): BelongsTo
+    public function field()
     {
-        return $this->belongsTo(Land::class);
+        return $this->belongsTo(Field::class);
     }
 
-    public function machine(): BelongsTo
+    public function creator()
     {
-        return $this->belongsTo(Machine::class);
+        return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function driver(): BelongsTo
+    public function assignee()
     {
-        return $this->belongsTo(User::class, 'driver_id');
+        return $this->belongsTo(User::class, 'assigned_to');
     }
 
-    public function assigner(): BelongsTo
+    public function invoices()
     {
-        return $this->belongsTo(User::class, 'assigned_by');
-    }
-
-    public function tracking(): HasMany
-    {
-        return $this->hasMany(JobTracking::class);
-    }
-
-    public function invoice(): HasOne
-    {
-        return $this->hasOne(Invoice::class);
-    }
-
-    public function expenses(): HasMany
-    {
-        return $this->hasMany(Expense::class);
+        return $this->hasMany(Invoice::class);
     }
 }

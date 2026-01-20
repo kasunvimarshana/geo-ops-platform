@@ -1,1 +1,0 @@
-export { databaseService } from './database';

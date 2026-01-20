@@ -1,0 +1,86 @@
+{
+  "common": {
+    "appName": "කෘෂි සිතියම",
+    "loading": "පූරණය වෙමින්...",
+    "save": "සුරකින්න",
+    "cancel": "අවලංගු කරන්න",
+    "delete": "මකන්න",
+    "edit": "සංස්කරණය",
+    "create": "නිර්මාණය",
+    "search": "සොයන්න",
+    "filter": "පෙරහන",
+    "yes": "ඔව්",
+    "no": "නැත",
+    "ok": "හරි",
+    "error": "දෝෂයක්",
+    "success": "සාර්ථකයි"
+  },
+  "auth": {
+    "login": "ඇතුල් වන්න",
+    "logout": "නික්මෙන්න",
+    "register": "ලියාපදිංචි වන්න",
+    "email": "විද්‍යුත් තැපෑල",
+    "password": "මුරපදය",
+    "confirmPassword": "මුරපදය තහවුරු කරන්න",
+    "forgotPassword": "මුරපදය අමතකද?",
+    "loginSuccess": "සාර්ථකව ඇතුල් වුණා",
+    "loginError": "ඇතුල් වීම අසාර්ථකයි. කරුණාකර ඔබේ තොරතුරු පරීක්ෂා කරන්න.",
+    "registerSuccess": "ලියාපදිංචිය සාර්ථකයි"
+  },
+  "gps": {
+    "startMeasurement": "මැනීම ආරම්භ කරන්න",
+    "stopMeasurement": "මැනීම නවතන්න",
+    "pauseMeasurement": "මැනීම විරාම කරන්න",
+    "resumeMeasurement": "මැනීම නැවත ආරම්භ කරන්න",
+    "area": "වර්ගඵලය",
+    "perimeter": "පරිමිතිය",
+    "accuracy": "නිරවද්‍යතාව",
+    "points": "ලක්ෂ්‍ය",
+    "walkAround": "වටා ඇවිදින්න",
+    "polygon": "බහුඅශ්‍රය",
+    "saveMeasurement": "මැනීම සුරකින්න",
+    "locationPermission": "GPS මැනීම් භාවිතා කිරීමට ස්ථාන අවසරය අවශ්‍ය වේ"
+  },
+  "field": {
+    "fields": "ක්ෂේත්‍ර",
+    "addField": "ක්ෂේත්‍රයක් එකතු කරන්න",
+    "editField": "ක්ෂේත්‍රය සංස්කරණය",
+    "fieldName": "ක්ෂේත්‍ර නාමය",
+    "fieldArea": "ක්ෂේත්‍ර ප්‍රදේශය",
+    "fieldLocation": "ක්ෂේත්‍ර ස්ථානය",
+    "cropType": "බෝග වර්ගය",
+    "notes": "සටහන්"
+  },
+  "job": {
+    "jobs": "රැකියා",
+    "addJob": "රැකියාවක් එකතු කරන්න",
+    "editJob": "රැකියාව සංස්කරණය",
+    "jobTitle": "රැකියා මාතෘකාව",
+    "jobDescription": "රැකියා විස්තරය",
+    "jobStatus": "රැකියා තත්ත්වය",
+    "assignedTo": "පවරන ලද",
+    "dueDate": "අවසන් දිනය",
+    "pending": "පොරොත්තු",
+    "inProgress": "ක්‍රියාත්මක වෙමින්",
+    "completed": "සම්පූර්ණයි"
+  },
+  "billing": {
+    "billing": "ගිණුම්",
+    "invoice": "ඉන්වොයිසිය",
+    "amount": "මුදල",
+    "paid": "ගෙවූ",
+    "unpaid": "නොගෙවූ",
+    "payNow": "දැන් ගෙවන්න",
+    "subscription": "දායකත්වය",
+    "subscriptionActive": "දායකත්වය ක්‍රියාත්මකයි",
+    "subscriptionExpired": "දායකත්වය කල් ඉකුත් වී ඇත"
+  },
+  "settings": {
+    "settings": "සැකසුම්",
+    "language": "භාෂාව",
+    "theme": "තේමාව",
+    "notifications": "දැනුම්දීම්",
+    "profile": "පැතිකඩ",
+    "about": "ගැන"
+  }
+}

@@ -1,70 +1,30 @@
 {
   "expo": {
-    "name": "GeoOps Platform",
-    "slug": "geo-ops-platform",
+    "name": "mobile",
+    "slug": "mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "lk.geoops.app",
-      "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "This app needs access to your location for GPS land measurement.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs continuous access to track field work in the background.",
-        "NSLocationAlwaysUsageDescription": "This app needs background location access to track your field work.",
-        "UIBackgroundModes": [
-          "location",
-          "fetch"
-        ]
-      }
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "lk.geoops.app",
-      "permissions": [
-        "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_BACKGROUND_LOCATION",
-        "BLUETOOTH",
-        "BLUETOOTH_ADMIN",
-        "BLUETOOTH_CONNECT",
-        "BLUETOOTH_SCAN"
-      ]
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false
     },
-    "plugins": [
-      "expo-location",
-      "expo-secure-store",
-      "expo-router",
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "compileSdkVersion": 34,
-            "targetSdkVersion": 34,
-            "minSdkVersion": 23
-          },
-          "ios": {
-            "deploymentTarget": "13.0"
-          }
-        }
-      ]
-    ],
-    "extra": {
-      "router": {
-        "origin": false
-      }
+    "web": {
+      "favicon": "./assets/favicon.png"
     }
   }
 }

@@ -1,1 +1,0 @@
-export { locationService } from './locationService';

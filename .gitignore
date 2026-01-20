@@ -1,18 +1,16 @@
 # Dependencies
 node_modules/
 vendor/
-bower_components/
+
+# Environment
+.env
+.env.local
+.env.*.local
 
 # Build outputs
 dist/
 build/
 *.log
-*.tmp
-
-# Environment files
-.env
-.env.*
-!.env.example
 
 # IDE
 .vscode/
@@ -21,30 +19,24 @@ build/
 *.swo
 *~
 
-# OS files
+# OS
 .DS_Store
 Thumbs.db
 
-# Laravel specific
-backend/storage/*.key
-backend/storage/logs/*.log
-backend/storage/framework/cache/*
-backend/storage/framework/sessions/*
-backend/storage/framework/testing/*
-backend/storage/framework/views/*
-backend/bootstrap/cache/*
+# Expo
+.expo/
+.expo-shared/
 
-# React Native / Expo
-mobile/.expo/
-mobile/.expo-shared/
-mobile/web-build/
-mobile/dist/
+# Laravel
+/backend/bootstrap/cache/*
+/backend/public/hot
+/backend/public/storage
+/backend/storage/*.key
 
 # Testing
 coverage/
-.phpunit.result.cache
+*.coverage
 
-# Generated files
-*.pdf
-*.sqlite
-*.db
+# Temporary files
+/tmp/
+*.tmp

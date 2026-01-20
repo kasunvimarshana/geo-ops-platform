@@ -1,0 +1,32 @@
+{
+  "name": "geo-ops-platform",
+  "version": "1.0.0",
+  "description": "GPS land measurement and agricultural field-service platform",
+  "private": true,
+  "workspaces": [
+    "mobile"
+  ],
+  "scripts": {
+    "mobile": "cd mobile && npm start",
+    "mobile:android": "cd mobile && npm run android",
+    "mobile:ios": "cd mobile && npm run ios",
+    "mobile:web": "cd mobile && npm run web",
+    "backend": "cd backend && php artisan serve",
+    "backend:install": "cd backend && composer install",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kasunvimarshana/geo-ops-platform.git"
+  },
+  "keywords": [
+    "gps",
+    "agriculture",
+    "field-service",
+    "react-native",
+    "laravel",
+    "expo"
+  ],
+  "author": "",
+  "license": "MIT"
+}

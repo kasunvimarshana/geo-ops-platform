@@ -2,213 +2,189 @@
 
 namespace App\Services;
 
-use App\Repositories\Interfaces\InvoiceRepositoryInterface;
-use App\Repositories\Interfaces\ExpenseRepositoryInterface;
-use App\Repositories\Interfaces\PaymentRepositoryInterface;
-use App\Repositories\Interfaces\JobRepositoryInterface;
-use App\Repositories\Interfaces\LandRepositoryInterface;
-use App\Repositories\Interfaces\MachineRepositoryInterface;
-use Illuminate\Support\Facades\DB;
+use App\Models\Field;
+use App\Models\Job;
+use App\Models\Invoice;
 
 class ReportService
 {
-    public function __construct(
-        private InvoiceRepositoryInterface $invoiceRepository,
-        private ExpenseRepositoryInterface $expenseRepository,
-        private PaymentRepositoryInterface $paymentRepository,
-        private JobRepositoryInterface $jobRepository,
-        private LandRepositoryInterface $landRepository,
-        private MachineRepositoryInterface $machineRepository
-    ) {}
-
-    public function generateFinancialReport(int $organizationId, array $filters): array
+    /**
+     * Generate field measurement report data
+     */
+    public function generateFieldReport(Field $field): array
     {
-        $fromDate = $filters['from_date'] ?? now()->startOfMonth();
-        $toDate = $filters['to_date'] ?? now();
+        $field->load(['organization', 'user', 'jobs']);
 
-        $invoices = $this->invoiceRepository->findByOrganization($organizationId, [
-            'from_date' => $fromDate,
-            'to_date' => $toDate,
-            'per_page' => 9999,
-        ])->items();
-
-        $expenses = $this->expenseRepository->findByOrganization($organizationId, [
-            'from_date' => $fromDate,
-            'to_date' => $toDate,
-            'per_page' => 9999,
-        ])->items();
-
-        $payments = $this->paymentRepository->findByOrganization($organizationId, [
-            'from_date' => $fromDate,
-            'to_date' => $toDate,
-            'per_page' => 9999,
-        ])->items();
-
-        $totalRevenue = collect($invoices)->sum('total_amount');
-        $totalPaid = collect($invoices)->sum('paid_amount');
-        $totalExpenses = collect($expenses)->sum('amount');
-        $netProfit = $totalPaid - $totalExpenses;
-
-        return [
-            'period' => [
-                'from' => $fromDate,
-                'to' => $toDate,
-            ],
-            'summary' => [
-                'total_revenue' => $totalRevenue,
-                'total_paid' => $totalPaid,
-                'outstanding' => $totalRevenue - $totalPaid,
-                'total_expenses' => $totalExpenses,
-                'net_profit' => $netProfit,
-            ],
-            'invoices' => [
-                'total_count' => count($invoices),
-                'paid_count' => collect($invoices)->where('status', 'paid')->count(),
-                'pending_count' => collect($invoices)->whereIn('status', ['draft', 'sent'])->count(),
-            ],
-            'expenses' => [
-                'total_count' => count($expenses),
-                'by_category' => collect($expenses)->groupBy('category')->map(fn($items) => [
-                    'count' => $items->count(),
-                    'total' => $items->sum('amount'),
-                ])->toArray(),
-            ],
-            'payments' => [
-                'total_count' => count($payments),
-                'by_method' => collect($payments)->groupBy('payment_method')->map(fn($items) => [
-                    'count' => $items->count(),
-                    'total' => $items->sum('amount'),
-                ])->toArray(),
-            ],
-        ];
-    }
-
-    public function generateLedgerReport(int $organizationId, array $filters): array
-    {
-        $fromDate = $filters['from_date'] ?? now()->startOfMonth();
-        $toDate = $filters['to_date'] ?? now();
-        $customerId = $filters['customer_id'] ?? null;
-
-        $query = DB::table('invoices')
-            ->where('organization_id', $organizationId)
-            ->whereBetween('invoice_date', [$fromDate, $toDate]);
-
-        if ($customerId) {
-            $query->where('customer_name', $customerId);
-        }
-
-        $invoices = $query->get();
-
-        $ledgerEntries = [];
-
-        foreach ($invoices as $invoice) {
-            $ledgerEntries[] = [
-                'date' => $invoice->invoice_date,
-                'type' => 'invoice',
-                'reference' => $invoice->invoice_number,
-                'customer' => $invoice->customer_name,
-                'debit' => $invoice->total_amount,
-                'credit' => 0,
-                'balance' => $invoice->balance,
-            ];
-
-            $payments = DB::table('payments')
-                ->where('invoice_id', $invoice->id)
-                ->get();
-
-            foreach ($payments as $payment) {
-                $ledgerEntries[] = [
-                    'date' => $payment->payment_date,
-                    'type' => 'payment',
-                    'reference' => $payment->reference_number,
-                    'customer' => $invoice->customer_name,
-                    'debit' => 0,
-                    'credit' => $payment->amount,
-                    'balance' => null,
-                ];
+        $boundary = null;
+        $coordinates = [];
+        
+        if ($field->boundary) {
+            try {
+                // boundary is already cast to array by the model
+                $boundary = is_string($field->boundary) ? json_decode($field->boundary, true) : $field->boundary;
+                if (is_array($boundary) && isset($boundary['coordinates'][0])) {
+                    $coordinates = $boundary['coordinates'][0];
+                }
+            } catch (\Exception $e) {
+                // Log error but continue with empty coordinates
+                \Log::warning('Failed to parse field boundary', ['field_id' => $field->id]);
             }
         }
 
-        usort($ledgerEntries, fn($a, $b) => $a['date'] <=> $b['date']);
-
         return [
-            'period' => [
-                'from' => $fromDate,
-                'to' => $toDate,
+            'title' => 'Field Measurement Report',
+            'generated_at' => now()->format('Y-m-d H:i:s'),
+            'field' => [
+                'id' => $field->id,
+                'name' => $field->name,
+                'area_ha' => $field->area ? round($field->area / 10000, 2) : 0,
+                'area_sqm' => $field->area ?? 0,
+                'perimeter_km' => $field->perimeter ? round($field->perimeter / 1000, 2) : 0,
+                'perimeter_m' => $field->perimeter ?? 0,
+                'crop_type' => $field->crop_type,
+                'measurement_type' => $field->measurement_type,
+                'notes' => $field->notes,
+                'created_at' => $field->created_at->format('Y-m-d H:i:s'),
             ],
-            'entries' => $ledgerEntries,
-            'summary' => [
-                'total_debit' => collect($ledgerEntries)->sum('debit'),
-                'total_credit' => collect($ledgerEntries)->sum('credit'),
+            'organization' => [
+                'name' => $field->organization->name,
+                'type' => $field->organization->type,
+                'email' => $field->organization->email,
             ],
+            'measured_by' => [
+                'name' => $field->user->name,
+                'email' => $field->user->email,
+            ],
+            'coordinates' => $coordinates,
+            'jobs_count' => $field->jobs->count(),
+            'jobs' => $field->jobs->map(function ($job) {
+                return [
+                    'title' => $job->title,
+                    'status' => $job->status,
+                    'priority' => $job->priority,
+                    'due_date' => $job->due_date ? $job->due_date->format('Y-m-d') : null,
+                ];
+            })->toArray(),
         ];
     }
 
-    public function generateMachinePerformanceReport(int $organizationId, array $filters): array
+    /**
+     * Generate job report data
+     */
+    public function generateJobReport(Job $job): array
     {
-        $fromDate = $filters['from_date'] ?? now()->startOfMonth();
-        $toDate = $filters['to_date'] ?? now();
-        $machineId = $filters['machine_id'] ?? null;
-
-        $machines = $machineId 
-            ? [$this->machineRepository->findByIdAndOrganization($machineId, $organizationId)]
-            : $this->machineRepository->findActive($organizationId);
-
-        $report = [];
-
-        foreach ($machines as $machine) {
-            if (!$machine) continue;
-
-            $jobs = DB::table('jobs')
-                ->where('machine_id', $machine->id)
-                ->whereBetween('job_date', [$fromDate, $toDate])
-                ->get();
-
-            $expenses = DB::table('expenses')
-                ->where('machine_id', $machine->id)
-                ->whereBetween('expense_date', [$fromDate, $toDate])
-                ->get();
-
-            $totalJobs = $jobs->count();
-            $completedJobs = $jobs->where('status', 'completed')->count();
-            $totalDuration = $jobs->sum('duration_minutes');
-            $totalExpenses = $expenses->sum('amount');
-
-            $lands = DB::table('lands')
-                ->whereIn('id', $jobs->pluck('land_id'))
-                ->get();
-            
-            $totalAreaWorked = $lands->sum('area_acres');
-
-            $report[] = [
-                'machine' => [
-                    'id' => $machine->id,
-                    'name' => $machine->name,
-                    'type' => $machine->machine_type,
-                    'registration' => $machine->registration_number,
-                ],
-                'performance' => [
-                    'total_jobs' => $totalJobs,
-                    'completed_jobs' => $completedJobs,
-                    'completion_rate' => $totalJobs > 0 ? round(($completedJobs / $totalJobs) * 100, 2) : 0,
-                    'total_duration_minutes' => $totalDuration,
-                    'average_duration_minutes' => $totalJobs > 0 ? round($totalDuration / $totalJobs, 2) : 0,
-                    'total_area_worked_acres' => $totalAreaWorked,
-                ],
-                'financials' => [
-                    'total_expenses' => $totalExpenses,
-                    'average_expense_per_job' => $totalJobs > 0 ? round($totalExpenses / $totalJobs, 2) : 0,
-                    'expense_breakdown' => $expenses->groupBy('category')->map(fn($items) => $items->sum('amount'))->toArray(),
-                ],
-            ];
-        }
+        $job->load(['organization', 'field', 'creator', 'assignee', 'invoices']);
 
         return [
-            'period' => [
-                'from' => $fromDate,
-                'to' => $toDate,
+            'title' => 'Job Report',
+            'generated_at' => now()->format('Y-m-d H:i:s'),
+            'job' => [
+                'id' => $job->id,
+                'title' => $job->title,
+                'description' => $job->description,
+                'status' => $job->status,
+                'priority' => $job->priority,
+                'due_date' => $job->due_date ? $job->due_date->format('Y-m-d') : null,
+                'started_at' => $job->started_at ? $job->started_at->format('Y-m-d H:i:s') : null,
+                'completed_at' => $job->completed_at ? $job->completed_at->format('Y-m-d H:i:s') : null,
+                'created_at' => $job->created_at->format('Y-m-d H:i:s'),
             ],
-            'machines' => $report,
+            'organization' => [
+                'name' => $job->organization->name,
+                'type' => $job->organization->type,
+            ],
+            'field' => $job->field ? [
+                'name' => $job->field->name,
+                'area_ha' => $job->field->area ? round($job->field->area / 10000, 2) : 0,
+            ] : null,
+            'creator' => [
+                'name' => $job->creator->name,
+                'email' => $job->creator->email,
+            ],
+            'assignee' => $job->assignee ? [
+                'name' => $job->assignee->name,
+                'email' => $job->assignee->email,
+            ] : null,
+            'invoices' => $job->invoices->map(function ($invoice) {
+                return [
+                    'number' => $invoice->invoice_number,
+                    'total' => $invoice->total,
+                    'status' => $invoice->status,
+                    'due_date' => $invoice->due_date ? $invoice->due_date->format('Y-m-d') : null,
+                ];
+            })->toArray(),
         ];
+    }
+
+    /**
+     * Format report data as HTML
+     */
+    public function formatAsHtml(array $reportData): string
+    {
+        $html = '<html><head><style>';
+        $html .= 'body { font-family: Arial, sans-serif; margin: 20px; }';
+        $html .= 'h1 { color: #27ae60; }';
+        $html .= 'h2 { color: #2c3e50; margin-top: 20px; }';
+        $html .= 'table { width: 100%; border-collapse: collapse; margin: 10px 0; }';
+        $html .= 'th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }';
+        $html .= 'th { background-color: #27ae60; color: white; }';
+        $html .= '.header { margin-bottom: 20px; }';
+        $html .= '</style></head><body>';
+
+        $html .= '<div class="header">';
+        $html .= '<h1>' . ($reportData['title'] ?? 'Report') . '</h1>';
+        $html .= '<p>Generated: ' . ($reportData['generated_at'] ?? date('Y-m-d H:i:s')) . '</p>';
+        $html .= '</div>';
+
+        // Field Report
+        if (isset($reportData['field'])) {
+            $field = $reportData['field'];
+            $html .= '<h2>Field Information</h2>';
+            $html .= '<table>';
+            $html .= '<tr><th>Property</th><th>Value</th></tr>';
+            $html .= '<tr><td>Name</td><td>' . htmlspecialchars($field['name']) . '</td></tr>';
+            $html .= '<tr><td>Location</td><td>' . htmlspecialchars($field['location'] ?? 'N/A') . '</td></tr>';
+            $html .= '<tr><td>Area</td><td>' . $field['area_ha'] . ' ha (' . $field['area_sqm'] . ' m²)</td></tr>';
+            $html .= '<tr><td>Perimeter</td><td>' . $field['perimeter_km'] . ' km (' . $field['perimeter_m'] . ' m)</td></tr>';
+            $html .= '<tr><td>Crop Type</td><td>' . htmlspecialchars($field['crop_type'] ?? 'N/A') . '</td></tr>';
+            $html .= '<tr><td>Measurement Type</td><td>' . htmlspecialchars($field['measurement_type'] ?? 'N/A') . '</td></tr>';
+            $html .= '</table>';
+
+            if (isset($reportData['organization'])) {
+                $org = $reportData['organization'];
+                $html .= '<h2>Organization</h2>';
+                $html .= '<table>';
+                $html .= '<tr><th>Property</th><th>Value</th></tr>';
+                $html .= '<tr><td>Name</td><td>' . htmlspecialchars($org['name']) . '</td></tr>';
+                $html .= '<tr><td>Type</td><td>' . ucfirst($org['type']) . '</td></tr>';
+                $html .= '</table>';
+            }
+        }
+
+        // Job Report
+        if (isset($reportData['job'])) {
+            $job = $reportData['job'];
+            $html .= '<h2>Job Details</h2>';
+            $html .= '<table>';
+            $html .= '<tr><th>Property</th><th>Value</th></tr>';
+            $html .= '<tr><td>Title</td><td>' . htmlspecialchars($job['title']) . '</td></tr>';
+            $html .= '<tr><td>Description</td><td>' . htmlspecialchars($job['description'] ?? 'N/A') . '</td></tr>';
+            $html .= '<tr><td>Status</td><td>' . ucfirst($job['status']) . '</td></tr>';
+            $html .= '<tr><td>Priority</td><td>' . ucfirst($job['priority']) . '</td></tr>';
+            $html .= '<tr><td>Due Date</td><td>' . ($job['due_date'] ?? 'N/A') . '</td></tr>';
+            $html .= '</table>';
+        }
+
+        $html .= '</body></html>';
+
+        return $html;
+    }
+
+    /**
+     * Format report data as JSON
+     */
+    public function formatAsJson(array $reportData): string
+    {
+        return json_encode($reportData, JSON_PRETTY_PRINT);
     }
 }
