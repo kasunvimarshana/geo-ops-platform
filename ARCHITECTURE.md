@@ -1,218 +1,437 @@
 # System Architecture
 
-## GPS Land Measurement & Agricultural Field-Service Management Platform
+## Overview
 
-### Overview
+Geo Ops Platform is a full-stack GPS land measurement and field-service management application designed with scalability, reliability, and offline-first capabilities.
 
-This is a production-ready, end-to-end GPS land measurement and agricultural field-service management application built with:
-- **Backend**: Laravel (latest LTS) with Clean Architecture
-- **Mobile Frontend**: React Native (Expo) with TypeScript
-- **Database**: MySQL/PostgreSQL with spatial data support
-- **Architecture**: Client-Server, RESTful APIs, Offline-first design
-
-### High-Level Architecture
+## Architecture Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    Mobile App (React Native/Expo)           │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │
-│  │  UI Layer    │  │ State Mgmt   │  │ Offline Storage  │  │
-│  │  Components  │  │ (Zustand)    │  │ (SQLite/MMKV)    │  │
-│  └──────────────┘  └──────────────┘  └──────────────────┘  │
-│         │                  │                   │            │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │           API Service Layer                          │  │
-│  │     (HTTP Client + Background Sync)                  │  │
-│  └──────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                     HTTPS/REST API
-                            │
-┌─────────────────────────────────────────────────────────────┐
-│                    Laravel Backend                          │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │              API Layer (Routes + Controllers)        │  │
-│  │                   (Thin Controllers)                 │  │
-│  └──────────────────────────────────────────────────────┘  │
-│         │                                                   │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │           Service Layer (Business Logic)             │  │
-│  │  - AuthService      - JobService                     │  │
-│  │  - MeasurementService - BillingService              │  │
-│  │  - TrackingService  - ExpenseService                │  │
-│  └──────────────────────────────────────────────────────┘  │
-│         │                                                   │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │         Repository Layer (Data Access)               │  │
-│  │  - UserRepository   - JobRepository                  │  │
-│  │  - MeasurementRepo  - InvoiceRepository             │  │
-│  └──────────────────────────────────────────────────────┘  │
-│         │                                                   │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │              Database (MySQL/PostgreSQL)             │  │
-│  │         with Spatial Data Support (PostGIS)          │  │
-│  └──────────────────────────────────────────────────────┘  │
-│                                                             │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │         Queue System (Background Jobs)               │  │
-│  │  - PDF Generation   - Sync Processing                │  │
-│  │  - Reports          - Email Notifications            │  │
-│  └──────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                         CLIENT LAYER                             │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  ┌──────────────────┐              ┌──────────────────┐         │
+│  │  React Native     │              │   Web App        │         │
+│  │  Mobile App       │◄────────────►│   (Future)       │         │
+│  │  (iOS/Android)    │              │                  │         │
+│  └────────┬──────────┘              └──────────────────┘         │
+│           │                                                       │
+└───────────┼───────────────────────────────────────────────────────┘
+            │
+            │ HTTPS/REST API
+            │
+┌───────────▼───────────────────────────────────────────────────────┐
+│                      APPLICATION LAYER                            │
+├───────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  ┌─────────────────────────────────────────────────────────────┐ │
+│  │              Express.js API Server                          │ │
+│  │                                                             │ │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐    │ │
+│  │  │ Auth         │  │ Measurement  │  │ Job          │    │ │
+│  │  │ Controller   │  │ Controller   │  │ Controller   │    │ │
+│  │  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘    │ │
+│  │         │                  │                  │            │ │
+│  │  ┌──────▼───────┐  ┌──────▼───────┐  ┌──────▼───────┐    │ │
+│  │  │ Auth         │  │ Measurement  │  │ Job          │    │ │
+│  │  │ Service      │  │ Service      │  │ Service      │    │ │
+│  │  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘    │ │
+│  │         │                  │                  │            │ │
+│  │  ┌──────▼──────────────────▼──────────────────▼───────┐   │ │
+│  │  │           Repository Layer                          │   │ │
+│  │  │         (Database Access Layer)                     │   │ │
+│  │  └─────────────────────────────────────────────────────┘   │ │
+│  └─────────────────────────────────────────────────────────────┘ │
+│                                                                   │
+└───────────┬───────────────────────────────────────────────────────┘
+            │
+            │ PostgreSQL Protocol
+            │
+┌───────────▼───────────────────────────────────────────────────────┐
+│                       DATA LAYER                                  │
+├───────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  ┌─────────────────────────────────────────────────────────────┐ │
+│  │              PostgreSQL Database                            │ │
+│  │                                                             │ │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  │ │
+│  │  │  Users   │  │   Land   │  │   Jobs   │  │ Invoices │  │ │
+│  │  │          │  │Measurem. │  │          │  │          │  │ │
+│  │  └──────────┘  └──────────┘  └──────────┘  └──────────┘  │ │
+│  │                                                             │ │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  │ │
+│  │  │Machines  │  │Customers │  │ Expenses │  │ Tracking │  │ │
+│  │  │          │  │          │  │          │  │   Logs   │  │ │
+│  │  └──────────┘  └──────────┘  └──────────┘  └──────────┘  │ │
+│  └─────────────────────────────────────────────────────────────┘ │
+│                                                                   │
+└───────────────────────────────────────────────────────────────────┘
 ```
 
-### Clean Architecture Layers (Backend)
+## Component Architecture
 
-#### 1. Presentation Layer
-- **Controllers**: Thin controllers handling HTTP requests/responses
-- **Middleware**: Authentication, authorization, validation
-- **DTOs**: Request and Response data transfer objects
-
-#### 2. Application Layer
-- **Services**: Business logic and orchestration
-- **Use Cases**: Specific application workflows
-- **Events**: Domain events and listeners
-
-#### 3. Domain Layer
-- **Models**: Eloquent models with business rules
-- **Repositories**: Data access abstraction
-- **Interfaces**: Contracts for implementations
-
-#### 4. Infrastructure Layer
-- **Database**: Migrations, seeders
-- **External Services**: Payment gateways, SMS, email
-- **Queue Jobs**: Background processing
-
-### Feature-Based Structure (Frontend)
+### Backend Architecture
 
 ```
-mobile/
-├── src/
-│   ├── features/
-│   │   ├── auth/
-│   │   ├── measurement/
-│   │   ├── jobs/
-│   │   ├── tracking/
-│   │   ├── billing/
-│   │   └── expenses/
-│   ├── components/
-│   ├── services/
-│   ├── stores/
-│   ├── navigation/
-│   └── utils/
+Backend (Node.js + Express)
+│
+├── API Layer (Express Router)
+│   ├── Route Definitions
+│   ├── Input Validation (Joi)
+│   └── Authentication Middleware (JWT)
+│
+├── Controller Layer
+│   ├── Request Handling
+│   ├── Response Formatting
+│   └── Error Handling
+│
+├── Service Layer (Business Logic)
+│   ├── Authentication Service
+│   ├── Land Measurement Service
+│   ├── Job Management Service
+│   ├── Invoice Service
+│   ├── Payment Service
+│   └── Expense Service
+│
+├── Repository Layer (Data Access)
+│   └── PostgreSQL Queries
+│
+└── Database Layer
+    └── PostgreSQL with Spatial Extensions
 ```
 
-### Security Architecture
-
-1. **Authentication**: JWT-based token authentication
-2. **Authorization**: Role-based access control (RBAC)
-3. **Data Isolation**: Organization-level data segregation
-4. **API Security**: Rate limiting, request validation
-5. **Encryption**: Sensitive data encryption at rest
-
-### Offline-First Architecture
-
-1. **Local Storage**: SQLite for structured data, MMKV for key-value
-2. **Sync Queue**: Background sync with retry logic
-3. **Conflict Resolution**: Last-write-wins with timestamp comparison
-4. **Network Detection**: Automatic sync on connectivity
-5. **State Management**: Optimistic updates with rollback
-
-### Scalability Considerations
-
-1. **Horizontal Scaling**: Stateless API servers
-2. **Caching**: Redis for session and data caching
-3. **Queue Workers**: Multiple queue workers for background jobs
-4. **Database Optimization**: Proper indexing, query optimization
-5. **CDN**: Static assets via CDN
-
-### Data Flow
-
-#### GPS Measurement Flow
-1. User walks around land boundary (mobile app)
-2. GPS coordinates collected and stored locally
-3. Polygon area calculated on device
-4. Data synced to backend when online
-5. Backend validates and stores in spatial database
-
-#### Job Management Flow
-1. Owner creates job with land measurement
-2. Job assigned to driver
-3. Driver tracks progress with GPS
-4. Job status updated through lifecycle
-5. Invoice auto-generated on completion
-
-#### Billing Flow
-1. Job completed with measured area
-2. System calculates cost based on rates
-3. Invoice generated as background job
-4. PDF invoice stored and available for download
-5. Payment recorded in ledger
-
-### Technology Stack
-
-#### Backend
-- Laravel 11.x (latest LTS)
-- PHP 8.2+
-- MySQL 8.0+ or PostgreSQL 14+ with PostGIS
-- Redis for caching and queues
-- JWT for authentication
-
-#### Mobile
-- React Native (Expo SDK 50+)
-- TypeScript 5.x
-- Expo Location & Maps
-- Zustand/Redux Toolkit for state
-- SQLite/MMKV for offline storage
-
-#### DevOps
-- Docker for containerization
-- CI/CD with GitHub Actions
-- Cloud deployment (AWS/DigitalOcean)
-- Monitoring and logging
-
-### User Roles & Permissions
-
-| Role | Permissions |
-|------|------------|
-| Admin | Full system access, user management |
-| Owner | Manage own organization, jobs, billing |
-| Driver | View assigned jobs, track GPS, log work |
-| Broker | Create jobs, manage clients |
-| Accountant | View financial reports, manage payments |
-
-### Module Dependencies
+### Mobile Architecture
 
 ```
-Authentication → Authorization → User Management
-        ↓
-Land Measurement → Jobs → GPS Tracking
-        ↓
-Billing → Invoicing → Payments → Ledger
-        ↓
-Expenses → Reports
-        ↓
-Subscriptions → Package Enforcement
+Mobile App (React Native + Expo)
+│
+├── Presentation Layer
+│   ├── Screens (Expo Router)
+│   │   ├── Auth Screens
+│   │   ├── Dashboard
+│   │   ├── Measurement Screen
+│   │   ├── Job Management
+│   │   └── Profile
+│   │
+│   └── Components
+│       ├── UI Components
+│       ├── Map Components
+│       └── Form Components
+│
+├── State Management (Zustand)
+│   ├── Auth Store
+│   ├── Measurement Store
+│   ├── Job Store
+│   └── UI Store
+│
+├── Service Layer
+│   ├── API Service (Axios)
+│   ├── Auth Service
+│   ├── Measurement Service
+│   ├── GPS Service
+│   └── Storage Service
+│
+└── Data Layer
+    ├── AsyncStorage (Token, User Data)
+    ├── SQLite (Offline Data)
+    └── Local File System (PDFs, Images)
 ```
 
-### Performance Requirements
+## Data Flow
 
-- API Response Time: < 200ms (95th percentile)
-- GPS Accuracy: < 5 meters
-- Offline Capability: 7 days without sync
-- Concurrent Users: 10,000+
-- Data Retention: 5+ years
+### Authentication Flow
 
-### Security Requirements
+```
+1. User enters credentials
+   ↓
+2. Mobile app sends to /api/v1/auth/login
+   ↓
+3. Backend validates credentials
+   ↓
+4. Backend generates JWT token
+   ↓
+5. Token returned to mobile app
+   ↓
+6. Token stored in AsyncStorage
+   ↓
+7. Token included in all subsequent requests
+```
 
-- HTTPS only
-- JWT token expiry: 1 hour (access), 30 days (refresh)
-- Password: bcrypt with salt
-- API rate limiting: 100 requests/minute
-- SQL injection prevention: Parameterized queries
-- XSS prevention: Input sanitization
-- CSRF protection: Token validation
+### Land Measurement Flow
 
----
+```
+1. User starts measurement
+   ↓
+2. GPS coordinates collected at intervals
+   ↓
+3. Coordinates stored locally (offline support)
+   ↓
+4. User stops measurement
+   ↓
+5. Area calculated using Shoelace formula
+   ↓
+6. Data sent to /api/v1/land-measurements (when online)
+   ↓
+7. Backend validates and saves to PostgreSQL
+   ↓
+8. Response sent back to mobile
+   ↓
+9. Local data marked as synced
+```
 
-This architecture ensures scalability, maintainability, security, and offline reliability for a production-ready agricultural field service platform.
+### Offline Sync Flow
+
+```
+1. App detects offline state
+   ↓
+2. Data operations stored in local queue (SQLite)
+   ↓
+3. App detects online state
+   ↓
+4. Queue processed sequentially
+   ↓
+5. Each operation sent to backend
+   ↓
+6. On success, local data updated
+   ↓
+7. On conflict, conflict resolution applied
+```
+
+## Database Schema
+
+### Core Tables
+
+1. **organizations**
+   - Organization/company details
+   - Subscription information
+
+2. **users**
+   - User accounts
+   - Authentication data
+   - Role assignments
+
+3. **land_measurements**
+   - GPS coordinates (JSONB)
+   - Calculated area
+   - Metadata
+
+4. **jobs**
+   - Job details
+   - Status tracking
+   - Assignments
+
+5. **invoices**
+   - Billing information
+   - Payment status
+
+6. **expenses**
+   - Expense records
+   - Categorization
+
+7. **tracking_logs**
+   - GPS tracking data
+   - Time series data
+
+### Relationships
+
+```
+organizations ─┬─ users
+               ├─ machines
+               ├─ customers
+               ├─ jobs
+               ├─ invoices
+               └─ expenses
+
+users ─┬─ land_measurements
+       ├─ tracking_logs (as driver)
+       └─ jobs (as driver)
+
+land_measurements ─── jobs
+
+jobs ─┬─ invoices
+      └─ tracking_logs
+
+invoices ─── payments
+```
+
+## API Design
+
+### RESTful Principles
+
+- Resource-based URLs
+- HTTP methods (GET, POST, PATCH, DELETE)
+- Stateless requests
+- JSON request/response
+- Standard HTTP status codes
+
+### Authentication
+
+- JWT Bearer tokens
+- Token in Authorization header
+- Role-based access control
+
+### Response Format
+
+```json
+{
+  "status": "success",
+  "data": { ... }
+}
+```
+
+### Error Format
+
+```json
+{
+  "status": "error",
+  "message": "Error description"
+}
+```
+
+## Security Architecture
+
+### Backend Security
+
+1. **Authentication**
+   - JWT tokens with expiry
+   - Secure password hashing (bcrypt)
+   - Token refresh mechanism
+
+2. **Authorization**
+   - Role-based access control
+   - Resource ownership validation
+   - Organization data isolation
+
+3. **Data Protection**
+   - SQL injection prevention (parameterized queries)
+   - XSS prevention
+   - CORS configuration
+   - Rate limiting
+   - Helmet security headers
+
+4. **Input Validation**
+   - Schema validation (Joi)
+   - Type checking (TypeScript)
+   - Sanitization
+
+### Mobile Security
+
+1. **Token Storage**
+   - Secure AsyncStorage
+   - No sensitive data in plain text
+
+2. **API Communication**
+   - HTTPS only
+   - Certificate pinning (production)
+   - Request/response encryption
+
+3. **Local Data**
+   - Encrypted SQLite database
+   - Secure file storage
+
+## Scalability Considerations
+
+### Horizontal Scaling
+
+- Stateless backend (can run multiple instances)
+- Load balancer in front of API servers
+- Connection pooling for database
+
+### Database Optimization
+
+- Indexed columns for frequent queries
+- Partitioning for large tables (tracking_logs)
+- Read replicas for reporting
+
+### Caching Strategy
+
+- Redis for session data (future)
+- API response caching
+- Mobile app data caching
+
+### Performance
+
+- Pagination for list endpoints
+- Lazy loading in mobile app
+- Background sync for offline data
+- Optimized database queries
+
+## Deployment Architecture
+
+### Development
+
+```
+Developer Machine
+├── Backend (localhost:3000)
+├── PostgreSQL (localhost:5432)
+└── Mobile (Expo Dev Server)
+```
+
+### Production
+
+```
+Cloud Infrastructure (AWS/GCP/Azure)
+│
+├── Load Balancer
+│   └─ API Servers (Auto-scaling)
+│       └─ Docker Containers
+│
+├── Database
+│   ├── Primary PostgreSQL
+│   └── Read Replicas
+│
+├── Storage
+│   └── Cloud Storage (S3/GCS)
+│
+└── Monitoring
+    ├── Application Logs
+    ├── Error Tracking
+    └── Performance Metrics
+```
+
+## Technology Choices Rationale
+
+### Backend: Node.js + Express
+
+- **Pros**: Fast development, large ecosystem, excellent JSON handling
+- **Use Case**: REST API, real-time features (future)
+
+### Database: PostgreSQL
+
+- **Pros**: ACID compliance, spatial data support (PostGIS), JSON support
+- **Use Case**: Complex queries, data integrity, geospatial operations
+
+### Mobile: React Native + Expo
+
+- **Pros**: Cross-platform, single codebase, large community
+- **Use Case**: iOS + Android support with shared code
+
+### State: Zustand
+
+- **Pros**: Lightweight, simple API, TypeScript support
+- **Use Case**: Global state management without boilerplate
+
+## Future Enhancements
+
+1. **Real-time Features**
+   - WebSocket for live tracking
+   - Push notifications
+
+2. **Analytics**
+   - Business intelligence dashboard
+   - Usage analytics
+
+3. **Integrations**
+   - Payment gateways
+   - SMS notifications
+   - Email services
+
+4. **Advanced Features**
+   - Machine learning for predictions
+   - Weather integration
+   - Advanced reporting
+
+5. **Multi-tenancy**
+   - Multiple organizations per instance
+   - White-label support

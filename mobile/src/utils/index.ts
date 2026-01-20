@@ -1,0 +1,1 @@
+export { calculateMapRegion } from './mapUtils';
