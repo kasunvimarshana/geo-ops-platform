@@ -1,185 +1,82 @@
-# Production Deployment Guide
+# Deployment Guide
 
-This guide provides comprehensive instructions for deploying the GeoOps Platform to production.
+## GeoOps Platform - Production Deployment
 
-## Table of Contents
+---
 
-1. [Prerequisites](#prerequisites)
-2. [Docker Deployment (Recommended)](#docker-deployment-recommended)
-3. [Manual Deployment](#manual-deployment)
-4. [Mobile App Deployment](#mobile-app-deployment)
-5. [Post-Deployment](#post-deployment)
-6. [Monitoring and Maintenance](#monitoring-and-maintenance)
+## Backend Deployment (Laravel API)
 
-## Prerequisites
+### Prerequisites
+
+- PHP 8.2 or higher
+- Composer
+- MySQL 8.0+ or PostgreSQL 13+
+- Redis
+- Node.js & NPM (for asset compilation)
+- SSL certificate
+- Domain name
+
+---
 
 ### Server Requirements
 
-- Ubuntu 22.04 LTS or similar Linux distribution
-- Minimum 2GB RAM (4GB+ recommended for production)
-- 20GB+ storage
-- Domain name with SSL certificate
-- Docker and Docker Compose (for Docker deployment)
-- PHP 8.3+ (for manual deployment)
-- MySQL 8.0+ or PostgreSQL 13+
-- Redis (recommended)
-- Nginx or Apache (for manual deployment)
-- Node.js 18+ (for mobile app builds)
+**Recommended Stack:**
 
-### Services Required
-
-- Expo Application Services (EAS) account for mobile builds
-- Cloud storage (optional - AWS S3, Google Cloud Storage)
-- Email service (optional - SendGrid, Mailgun)
-- Payment gateway (optional - Stripe, PayPal)
+- **OS**: Ubuntu 22.04 LTS
+- **Web Server**: Nginx
+- **PHP**: 8.2 with extensions (mbstring, xml, curl, gd, pdo_mysql, redis)
+- **Database**: MySQL 8.0 or PostgreSQL 13
+- **Cache/Queue**: Redis 7.0
+- **Supervisor**: For queue workers
+- **Certbot**: For SSL certificates
 
 ---
 
-## Docker Deployment (Recommended)
+### Step 1: Server Setup
 
-Docker provides the easiest and most reliable deployment method.
-
-### 1. Install Docker
-
-```bash
-# Install Docker
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-
-# Install Docker Compose
-sudo apt install docker-compose -y
-
-# Add user to docker group
-sudo usermod -aG docker $USER
-newgrp docker
-```
-
-### 2. Clone Repository
-
-```bash
-git clone https://github.com/kasunvimarshana/geo-ops-platform.git
-cd geo-ops-platform
-```
-
-### 3. Configure Environment
-
-```bash
-# Copy and edit environment file
-cp .env.docker.example .env.docker
-nano .env.docker
-
-# Generate secure passwords
-MYSQL_ROOT_PASSWORD=$(openssl rand -base64 32)
-DB_PASSWORD=$(openssl rand -base64 32)
-
-# Update .env.docker with generated passwords
-```
-
-### 4. Configure Backend
-
-```bash
-cd backend
-cp .env.example .env
-nano .env
-
-# Update these values:
-# APP_ENV=production
-# APP_DEBUG=false
-# APP_URL=https://your-domain.com
-# DB_CONNECTION=mysql
-# DB_HOST=mysql
-# DB_DATABASE=geo-ops
-# DB_USERNAME=geo-ops_user
-# DB_PASSWORD=your-secure-password
-# CORS_ALLOWED_ORIGINS=https://your-domain.com,https://app.your-domain.com
-```
-
-### 5. Start Services
-
-```bash
-# Return to root directory
-cd ..
-
-# Start all services
-docker-compose up -d
-
-# Check status
-docker-compose ps
-
-# View logs
-docker-compose logs -f backend
-```
-
-### 6. Initialize Application
-
-```bash
-# Generate application key
-docker-compose exec backend php artisan key:generate
-
-# Generate JWT secret
-docker-compose exec backend php artisan jwt:secret
-
-# Run migrations
-docker-compose exec backend php artisan migrate --force
-
-# Create admin user (optional)
-docker-compose exec backend php artisan tinker
->>> $user = App\Models\User::create([
-...   'name' => 'Admin',
-...   'email' => 'admin@example.com',
-...   'password' => bcrypt('secure-password'),
-...   'role' => 'admin'
-... ]);
->>> exit
-```
-
-### 7. Configure SSL (Let's Encrypt)
-
-```bash
-# Install Certbot
-sudo apt install certbot python3-certbot-nginx -y
-
-# Get SSL certificate
-sudo certbot --nginx -d your-domain.com -d www.your-domain.com
-
-# Auto-renewal is configured automatically
-sudo certbot renew --dry-run
-```
-
----
-
-## Manual Deployment
-
-### 1. Server Setup
+#### Install Required Packages
 
 ```bash
 # Update system
 sudo apt update && sudo apt upgrade -y
 
-# Install PHP 8.3 and extensions
-sudo add-apt-repository ppa:ondrej/php -y
-sudo apt update
-sudo apt install php8.3 php8.3-fpm php8.3-mysql php8.3-mbstring \
-  php8.3-xml php8.3-bcmath php8.3-curl php8.3-zip \
-  php8.3-gd php8.3-redis -y
-
-# Install MySQL
-sudo apt install mysql-server -y
-sudo mysql_secure_installation
-
-# Install Redis
-sudo apt install redis-server -y
-sudo systemctl enable redis-server
+# Install PHP 8.2 and extensions
+sudo apt install -y php8.2 php8.2-fpm php8.2-cli php8.2-common \
+  php8.2-mysql php8.2-pgsql php8.2-xml php8.2-curl php8.2-gd \
+  php8.2-mbstring php8.2-zip php8.2-redis php8.2-bcmath
 
 # Install Composer
 curl -sS https://getcomposer.org/installer | php
 sudo mv composer.phar /usr/local/bin/composer
 
+# Install MySQL
+sudo apt install -y mysql-server
+sudo mysql_secure_installation
+
+# Install Redis
+sudo apt install -y redis-server
+sudo systemctl enable redis-server
+sudo systemctl start redis-server
+
 # Install Nginx
-sudo apt install nginx -y
+sudo apt install -y nginx
+sudo systemctl enable nginx
+sudo systemctl start nginx
+
+# Install Supervisor
+sudo apt install -y supervisor
+sudo systemctl enable supervisor
+sudo systemctl start supervisor
+
+# Install Certbot for SSL
+sudo apt install -y certbot python3-certbot-nginx
 ```
 
-### 2. Configure MySQL
+---
+
+### Step 2: Database Setup
+
+#### MySQL Setup
 
 ```bash
 # Login to MySQL
@@ -187,133 +84,184 @@ sudo mysql -u root -p
 
 # Create database and user
 CREATE DATABASE geo-ops CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'geo-ops'@'localhost' IDENTIFIED BY 'strong_password_here';
-GRANT ALL PRIVILEGES ON geo-ops.* TO 'geo-ops'@'localhost';
+CREATE USER 'geo-ops_user'@'localhost' IDENTIFIED BY 'strong_password_here';
+GRANT ALL PRIVILEGES ON geo-ops.* TO 'geo-ops_user'@'localhost';
 FLUSH PRIVILEGES;
 EXIT;
 ```
 
-### 3. Deploy Laravel Application
+#### PostgreSQL Setup (Alternative)
+
+```bash
+# Install PostgreSQL and PostGIS
+sudo apt install -y postgresql postgresql-contrib postgis
+
+# Create database and user
+sudo -u postgres psql
+
+CREATE DATABASE geo-ops;
+CREATE USER geo-ops_user WITH PASSWORD 'strong_password_here';
+GRANT ALL PRIVILEGES ON DATABASE geo-ops TO geo-ops_user;
+
+# Connect to database and enable PostGIS
+\c geo-ops
+CREATE EXTENSION postgis;
+\q
+```
+
+---
+
+### Step 3: Clone and Configure Application
 
 ```bash
 # Create application directory
 sudo mkdir -p /var/www/geo-ops
+sudo chown -R $USER:$USER /var/www/geo-ops
+
+# Clone repository
 cd /var/www/geo-ops
+git clone https://github.com/yourusername/geo-ops-field-platform.git .
 
-# Clone repository (or upload files)
-git clone https://github.com/kasunvimarshana/geo-ops-platform.git .
-
-# Navigate to backend
+# Go to backend directory
 cd backend
 
 # Install dependencies
-composer install --optimize-autoloader --no-dev
+composer install --no-dev --optimize-autoloader
 
 # Set permissions
-sudo chown -R www-data:www-data /var/www/geo-ops
-sudo chmod -R 755 /var/www/geo-ops
-sudo chmod -R 775 /var/www/geo-ops/backend/storage
-sudo chmod -R 775 /var/www/geo-ops/backend/bootstrap/cache
+sudo chown -R www-data:www-data storage bootstrap/cache
+sudo chmod -R 775 storage bootstrap/cache
 
-# Copy and configure .env
+# Copy environment file
 cp .env.example .env
-nano .env  # Edit with production values
+
+# Generate application key
+php artisan key:generate
 ```
 
-### 4. Configure .env for Production
+---
+
+### Step 4: Configure Environment (.env)
+
+Edit `/var/www/geo-ops/backend/.env`:
 
 ```env
 APP_NAME="GeoOps Platform"
 APP_ENV=production
+APP_KEY=base64:generated_key_here
 APP_DEBUG=false
-APP_URL=https://your-domain.com
+APP_URL=https://api.geo-ops.lk
 
+LOG_CHANNEL=daily
+LOG_LEVEL=warning
+
+# Database
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=geo-ops
-DB_USERNAME=geo-ops
+DB_USERNAME=geo-ops_user
 DB_PASSWORD=strong_password_here
 
+# Redis
+REDIS_HOST=127.0.0.1
+REDIS_PASSWORD=null
+REDIS_PORT=6379
+REDIS_DB=0
+
+# Cache
 CACHE_DRIVER=redis
 QUEUE_CONNECTION=redis
 SESSION_DRIVER=redis
 
-REDIS_HOST=127.0.0.1
-REDIS_PASSWORD=null
-REDIS_PORT=6379
+# Queue
+QUEUE_CONNECTION=redis
 
-# Generate these keys
-JWT_SECRET=  # Will be generated
-APP_KEY=     # Will be generated
+# JWT
+JWT_SECRET=your_jwt_secret_key_here
+JWT_TTL=60
+JWT_REFRESH_TTL=43200
+
+# AWS S3 (for file storage)
+FILESYSTEM_DISK=s3
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+AWS_DEFAULT_REGION=us-east-1
+AWS_BUCKET=geo-ops-files
+AWS_USE_PATH_STYLE_ENDPOINT=false
+
+# Mail
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.example.com
+MAIL_PORT=587
+MAIL_USERNAME=noreply@geo-ops.lk
+MAIL_PASSWORD=your_mail_password
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=noreply@geo-ops.lk
+MAIL_FROM_NAME="${APP_NAME}"
+
+# Subscription Package Limits
+FREE_MAX_MEASUREMENTS=10
+FREE_MAX_DRIVERS=2
+FREE_MAX_JOBS=20
+BASIC_MAX_MEASUREMENTS=100
+BASIC_MAX_DRIVERS=5
+BASIC_MAX_JOBS=200
 ```
 
-### 5. Run Setup Commands
+---
+
+### Step 5: Run Migrations and Seeders
 
 ```bash
-# Generate application key
-php artisan key:generate
-
-# Generate JWT secret
-php artisan jwt:secret
-
 # Run migrations
 php artisan migrate --force
 
-# Optimize application
+# Seed subscription packages
+php artisan db:seed --class=SubscriptionPackageSeeder
+
+# (Optional) Seed sample data for testing
+php artisan db:seed --class=SampleDataSeeder
+
+# Create storage symlink
+php artisan storage:link
+
+# Cache configuration
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
-php artisan optimize
 ```
 
-### 6. Configure Nginx
+---
 
-Create Nginx configuration:
+### Step 6: Configure Nginx
 
-```bash
-sudo nano /etc/nginx/sites-available/geo-ops
-```
-
-Add configuration:
+Create `/etc/nginx/sites-available/geo-ops`:
 
 ```nginx
 server {
     listen 80;
-    server_name your-domain.com www.your-domain.com;
-    return 301 https://$server_name$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    server_name your-domain.com www.your-domain.com;
+    server_name api.geo-ops.lk;
     root /var/www/geo-ops/backend/public;
+
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Content-Type-Options "nosniff";
 
     index index.php;
 
-    # SSL configuration
-    ssl_certificate /etc/letsencrypt/live/your-domain.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/your-domain.com/privkey.pem;
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers HIGH:!aNULL:!MD5;
+    charset utf-8;
 
-    # Security headers
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-
-    # Logging
-    access_log /var/log/nginx/geo-ops_access.log;
-    error_log /var/log/nginx/geo-ops_error.log;
-
-    # PHP-FPM configuration
     location / {
         try_files $uri $uri/ /index.php?$query_string;
     }
 
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    error_page 404 /index.php;
+
     location ~ \.php$ {
-        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
-        fastcgi_index index.php;
+        fastcgi_pass unix:/var/run/php/php8.2-fpm.sock;
         fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
         include fastcgi_params;
     }
@@ -322,136 +270,107 @@ server {
         deny all;
     }
 
-    # Cache static files
-    location ~* \.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|eot)$ {
-        expires 30d;
-        add_header Cache-Control "public, immutable";
-    }
+    # Increase upload size for receipts/images
+    client_max_body_size 20M;
 }
 ```
 
-Enable site and restart Nginx:
+Enable site:
 
 ```bash
 sudo ln -s /etc/nginx/sites-available/geo-ops /etc/nginx/sites-enabled/
 sudo nginx -t
-sudo systemctl restart nginx
+sudo systemctl reload nginx
 ```
 
-### 7. Setup SSL with Let's Encrypt
+---
+
+### Step 7: Configure SSL with Let's Encrypt
 
 ```bash
-sudo apt install certbot python3-certbot-nginx -y
-sudo certbot --nginx -d your-domain.com -d www.your-domain.com
+# Generate SSL certificate
+sudo certbot --nginx -d api.geo-ops.lk
+
+# Auto-renewal is set up automatically
+# Test renewal
+sudo certbot renew --dry-run
 ```
 
-### 8. Setup Queue Worker
+---
 
-Create systemd service:
+### Step 8: Configure Queue Workers (Supervisor)
 
-```bash
-sudo nano /etc/systemd/system/geo-ops-queue.service
-```
-
-Add configuration:
+Create `/etc/supervisor/conf.d/geo-ops-worker.conf`:
 
 ```ini
-[Unit]
-Description=GeoOps Queue Worker
-After=network.target
-
-[Service]
-Type=simple
-User=www-data
-WorkingDirectory=/var/www/geo-ops/backend
-ExecStart=/usr/bin/php /var/www/geo-ops/backend/artisan queue:work --sleep=3 --tries=3 --max-time=3600
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
+[program:geo-ops-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=php /var/www/geo-ops/backend/artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=www-data
+numprocs=4
+redirect_stderr=true
+stdout_logfile=/var/www/geo-ops/backend/storage/logs/worker.log
+stopwaitsecs=3600
 ```
 
-Enable and start service:
+Start workers:
 
 ```bash
-sudo systemctl daemon-reload
-sudo systemctl enable geo-ops-queue
-sudo systemctl start geo-ops-queue
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl start geo-ops-worker:*
 ```
 
-### 9. Setup Cron Jobs
+---
+
+### Step 9: Configure Cron for Scheduled Tasks
 
 ```bash
 sudo crontab -e -u www-data
-```
 
-Add Laravel scheduler:
-
-```cron
+# Add this line:
 * * * * * cd /var/www/geo-ops/backend && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-## Mobile App Deployment
+---
 
-### 1. Install EAS CLI
-
-```bash
-npm install -g eas-cli
-eas login
-```
-
-### 2. Configure EAS
+### Step 10: Security Hardening
 
 ```bash
-cd mobile
-eas build:configure
+# Restrict access to sensitive files
+sudo chmod 600 /var/www/geo-ops/backend/.env
+
+# Disable directory listing
+sudo vi /etc/nginx/nginx.conf
+# Add inside http block:
+autoindex off;
+
+# Configure firewall
+sudo ufw allow 22/tcp
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw enable
+
+# Secure MySQL
+sudo mysql_secure_installation
+
+# Fail2ban (optional)
+sudo apt install -y fail2ban
+sudo systemctl enable fail2ban
+sudo systemctl start fail2ban
 ```
 
-### 3. Update Production API URL
+---
 
-Edit `mobile/.env.production`:
+### Step 11: Monitoring & Logging
 
-```env
-EXPO_PUBLIC_API_URL=https://your-domain.com/api/v1
-```
+#### Set up Log Rotation
 
-### 4. Build for iOS
-
-```bash
-# Development build
-eas build --profile development --platform ios
-
-# Production build
-eas build --profile production --platform ios
-```
-
-### 5. Build for Android
-
-```bash
-# Development build
-eas build --profile development --platform android
-
-# Production build
-eas build --profile production --platform android
-```
-
-### 6. Submit to App Stores
-
-```bash
-# iOS
-eas submit --platform ios
-
-# Android
-eas submit --platform android
-```
-
-## Monitoring & Maintenance
-
-### 1. Setup Log Rotation
-
-```bash
-sudo nano /etc/logrotate.d/geo-ops
-```
+Create `/etc/logrotate.d/geo-ops`:
 
 ```
 /var/www/geo-ops/backend/storage/logs/*.log {
@@ -462,127 +381,452 @@ sudo nano /etc/logrotate.d/geo-ops
     delaycompress
     notifempty
     create 0640 www-data www-data
+    sharedscripts
 }
 ```
 
-### 2. Database Backups
+#### Monitor Queue Workers
 
-Create backup script:
+```bash
+# Check queue worker status
+sudo supervisorctl status geo-ops-worker:*
+
+# View worker logs
+tail -f /var/www/geo-ops/backend/storage/logs/worker.log
+```
+
+---
+
+## Mobile App Deployment (React Native Expo)
+
+### Prerequisites
+
+- Node.js 18+ and npm
+- Expo CLI
+- EAS CLI (Expo Application Services)
+- Apple Developer Account (for iOS)
+- Google Play Developer Account (for Android)
+
+---
+
+### Step 1: Install EAS CLI
+
+```bash
+npm install -g eas-cli
+```
+
+---
+
+### Step 2: Configure Environment Variables
+
+Create `/mobile/.env.production`:
+
+```env
+API_BASE_URL=https://api.geo-ops.lk/api/v1
+GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+MAPBOX_ACCESS_TOKEN=your_mapbox_token
+SENTRY_DSN=your_sentry_dsn
+APP_VERSION=1.0.0
+```
+
+---
+
+### Step 3: Configure EAS Build
+
+Create `/mobile/eas.json`:
+
+```json
+{
+  "cli": {
+    "version": ">= 5.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "gradleCommand": ":app:assembleDebug"
+      },
+      "ios": {
+        "buildConfiguration": "Debug"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "ios": {
+        "buildConfiguration": "Release"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "./service-account-key.json",
+        "track": "internal"
+      },
+      "ios": {
+        "appleId": "your-apple-id@example.com",
+        "ascAppId": "1234567890",
+        "appleTeamId": "ABCDEFGHIJ"
+      }
+    }
+  }
+}
+```
+
+---
+
+### Step 4: Update app.json
+
+```json
+{
+  "expo": {
+    "name": "GeoOps Platform",
+    "slug": "geo-ops-field",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "lk.geo-ops.field",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "GeoOps needs your location to measure land accurately.",
+        "NSLocationAlwaysUsageDescription": "GeoOps needs background location to track jobs.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "GeoOps needs your location for land measurement and job tracking."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "lk.geo-ops.field",
+      "versionCode": 1,
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow GeoOps to use your location."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "your-project-id"
+      }
+    }
+  }
+}
+```
+
+---
+
+### Step 5: Build for Android
+
+```bash
+cd mobile
+
+# Login to Expo
+eas login
+
+# Configure EAS
+eas build:configure
+
+# Build production APK/AAB
+eas build --platform android --profile production
+
+# Download build when complete
+# Build will be available in Expo dashboard
+```
+
+---
+
+### Step 6: Build for iOS
+
+```bash
+# Build for iOS (requires Apple Developer account)
+eas build --platform ios --profile production
+
+# The build will be available in Expo dashboard
+```
+
+---
+
+### Step 7: Submit to App Stores
+
+#### Android (Google Play Store)
+
+```bash
+# Submit to Google Play
+eas submit --platform android --profile production
+
+# Or manually:
+# 1. Go to https://play.google.com/console
+# 2. Create new app
+# 3. Upload AAB file
+# 4. Complete store listing
+# 5. Submit for review
+```
+
+#### iOS (Apple App Store)
+
+```bash
+# Submit to App Store
+eas submit --platform ios --profile production
+
+# Or manually:
+# 1. Open Xcode and upload to App Store Connect
+# 2. Complete app information in App Store Connect
+# 3. Submit for review
+```
+
+---
+
+### Step 8: Over-The-Air (OTA) Updates
+
+For minor updates without rebuilding:
+
+```bash
+# Publish update
+eas update --branch production --message "Bug fixes and improvements"
+
+# Users will receive update automatically
+```
+
+---
+
+## CI/CD with GitHub Actions
+
+Create `.github/workflows/deploy.yml`:
+
+```yaml
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/geo-ops
+            git pull origin main
+            cd backend
+            composer install --no-dev --optimize-autoloader
+            php artisan migrate --force
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            sudo supervisorctl restart geo-ops-worker:*
+
+  build-mobile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: |
+          cd mobile
+          npm ci
+
+      - name: Build for Android
+        run: |
+          cd mobile
+          eas build --platform android --non-interactive --no-wait
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+```
+
+---
+
+## Backup Strategy
+
+### Database Backup
+
+Create `/usr/local/bin/backup-geo-ops-db.sh`:
 
 ```bash
 #!/bin/bash
+BACKUP_DIR="/var/backups/geo-ops"
 DATE=$(date +%Y%m%d_%H%M%S)
-BACKUP_DIR="/backups/geo-ops"
+BACKUP_FILE="$BACKUP_DIR/geo-ops_$DATE.sql.gz"
+
 mkdir -p $BACKUP_DIR
 
-mysqldump -u geo-ops -p geo-ops > $BACKUP_DIR/geo-ops_$DATE.sql
-gzip $BACKUP_DIR/geo-ops_$DATE.sql
+# MySQL backup
+mysqldump -u geo-ops_user -p'password' geo-ops | gzip > $BACKUP_FILE
 
-# Keep only last 30 days
-find $BACKUP_DIR -type f -mtime +30 -delete
+# Upload to S3 (optional)
+aws s3 cp $BACKUP_FILE s3://your-backup-bucket/database/
+
+# Delete backups older than 30 days
+find $BACKUP_DIR -name "*.sql.gz" -mtime +30 -delete
+
+echo "Backup completed: $BACKUP_FILE"
 ```
 
-Schedule with cron:
-
-```cron
-0 2 * * * /path/to/backup-script.sh
-```
-
-### 3. Monitoring
-
-- Setup uptime monitoring (UptimeRobot, Pingdom)
-- Configure error tracking (Sentry, Bugsnag)
-- Monitor server resources (New Relic, DataDog)
-
-### 4. Performance Optimization
+Make executable and add to cron:
 
 ```bash
-# Enable OPcache
-sudo nano /etc/php/8.3/fpm/php.ini
+sudo chmod +x /usr/local/bin/backup-geo-ops-db.sh
+sudo crontab -e
 
-# Add/update:
-opcache.enable=1
-opcache.memory_consumption=256
-opcache.interned_strings_buffer=16
-opcache.max_accelerated_files=10000
-opcache.revalidate_freq=60
-
-# Restart PHP-FPM
-sudo systemctl restart php8.3-fpm
+# Add daily backup at 2 AM
+0 2 * * * /usr/local/bin/backup-geo-ops-db.sh >> /var/log/geo-ops-backup.log 2>&1
 ```
 
-## Security Checklist
+---
 
-- [ ] SSL certificate installed and auto-renewal configured
-- [ ] Firewall configured (UFW)
-- [ ] SSH key-based authentication only
-- [ ] Regular security updates
-- [ ] Database password is strong and secure
-- [ ] JWT secret is properly generated
-- [ ] APP_DEBUG=false in production
-- [ ] File permissions are correct (755/644)
-- [ ] `.env` file is not accessible via web
-- [ ] Database backups are automated
-- [ ] Error reporting configured to log only
-- [ ] Rate limiting enabled on API endpoints
-- [ ] CORS properly configured
-- [ ] Security headers added to Nginx
+## Monitoring & Alerts
+
+### Application Monitoring (Laravel)
+
+Install Laravel Telescope (development) or Sentry (production):
+
+```bash
+# Production: Sentry
+composer require sentry/sentry-laravel
+
+# Configure in config/sentry.php and .env
+SENTRY_LARAVEL_DSN=your_sentry_dsn
+```
+
+### Server Monitoring
+
+Use tools like:
+
+- **UptimeRobot** - Uptime monitoring
+- **New Relic** - Application performance
+- **CloudWatch** - AWS metrics
+- **Grafana + Prometheus** - Custom metrics
+
+---
+
+## Performance Optimization
+
+### Backend
+
+1. **Enable OPcache** (PHP optimization)
+2. **Use CDN** for static assets
+3. **Database indexing** on frequently queried columns
+4. **Redis caching** for frequently accessed data
+5. **Optimize images** before storage
+6. **Enable gzip compression** in Nginx
+
+### Mobile
+
+1. **Code splitting** and lazy loading
+2. **Image optimization** and caching
+3. **Reduce bundle size** (remove unused code)
+4. **Use production build** (minified)
+
+---
 
 ## Troubleshooting
 
-### Queue Not Processing
+### Backend Issues
 
 ```bash
-sudo systemctl status geo-ops-queue
-sudo systemctl restart geo-ops-queue
-sudo journalctl -u geo-ops-queue -f
-```
-
-### 500 Internal Server Error
-
-```bash
-# Check Laravel logs
+# View Laravel logs
 tail -f /var/www/geo-ops/backend/storage/logs/laravel.log
 
-# Check Nginx logs
-tail -f /var/log/nginx/geo-ops_error.log
+# Check queue workers
+sudo supervisorctl status geo-ops-worker:*
 
-# Check PHP-FPM logs
-tail -f /var/log/php8.3-fpm.log
-```
+# Restart queue workers
+sudo supervisorctl restart geo-ops-worker:*
 
-### Database Connection Issues
-
-```bash
-# Test database connection
-mysql -u geo-ops -p geo-ops
-
-# Restart MySQL
-sudo systemctl restart mysql
-```
-
-## Rollback Procedure
-
-If deployment fails:
-
-```bash
-# Revert to previous code version
-git checkout <previous-commit>
-
-# Clear caches
+# Clear cache
 php artisan cache:clear
 php artisan config:clear
 php artisan route:clear
 php artisan view:clear
-
-# Restart services
-sudo systemctl restart php8.3-fpm
-sudo systemctl restart nginx
 ```
 
-## Support
+### Database Issues
 
-For production support:
+```bash
+# Check MySQL status
+sudo systemctl status mysql
 
-- Check documentation: https://github.com/kasunvimarshana/geo-ops-platform
-- Report issues: https://github.com/kasunvimarshana/geo-ops-platform/issues
+# Check connections
+mysql -u geo-ops_user -p -e "SHOW PROCESSLIST;"
+
+# Optimize tables
+php artisan db:optimize
+```
+
+---
+
+## Scaling Considerations
+
+### Horizontal Scaling
+
+- Load balancer (Nginx/HAProxy)
+- Multiple app servers
+- Database read replicas
+- Redis cluster
+
+### Vertical Scaling
+
+- Increase server resources (CPU, RAM)
+- Optimize queries
+- Add indexes
+- Use caching aggressively
+
+---
+
+## Support & Maintenance
+
+- Monitor error logs daily
+- Review performance metrics weekly
+- Update dependencies monthly
+- Backup verification monthly
+- Security patches immediately
+- Feature updates quarterly
+
+---
+
+## Emergency Contacts
+
+- System Administrator: admin@geo-ops.lk
+- Database Administrator: dba@geo-ops.lk
+- Development Team: dev@geo-ops.lk
+- On-call Support: +94 XX XXX XXXX

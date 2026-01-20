@@ -1,299 +1,356 @@
-# GeoOps Platform - Architecture Documentation
+# System Architecture Overview
 
-## Overview
+## GeoOps Platform - GPS Land Measurement & Agricultural Field Service Management
 
-GeoOps Platform is a production-ready GPS-based land measurement and agricultural field-service platform built with:
+### Architecture Type
 
-- **Frontend/Mobile**: React Native (Expo) with TypeScript
-- **Backend**: Laravel 10 (LTS) with PHP 8.3
-- **Architecture**: Clean Architecture with SOLID principles
+**Client-Server Architecture** with RESTful API communication
 
-## Project Structure
+### Key Architectural Principles
+
+- **Clean Architecture** (Backend)
+- **Feature-Based Modular Architecture** (Mobile)
+- **Offline-First Design**
+- **Multi-Tenancy** (Organization-level isolation)
+- **SOLID, DRY, KISS principles**
+
+---
+
+## High-Level Architecture Diagram
 
 ```
-geo-ops-platform/
-├── mobile/                 # React Native mobile app
-│   ├── src/
-│   │   ├── config/        # Configuration files (API, GPS, i18n, storage)
-│   │   ├── domain/        # Domain layer (entities, repositories)
-│   │   ├── application/   # Use cases and business logic
-│   │   ├── infrastructure/# External services (API, GPS, storage)
-│   │   └── presentation/  # UI components, screens, navigation
-│   └── package.json
-├── backend/               # Laravel API
-│   ├── app/
-│   │   ├── Domain/       # Domain entities and business logic
-│   │   ├── Application/  # Use cases
-│   │   ├── Infrastructure/# External services implementation
-│   │   ├── Presentation/ # HTTP controllers
-│   │   └── Models/       # Eloquent models
-│   ├── database/
-│   │   └── migrations/   # Database schema
-│   └── routes/
-│       └── api.php       # API routes (v1)
-└── docs/                 # Documentation
+┌─────────────────────────────────────────────────────────────┐
+│                    Mobile Application                        │
+│              (React Native + Expo + TypeScript)              │
+│                                                               │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  Presentation Layer                                   │  │
+│  │  - Feature-based UI Components                        │  │
+│  │  - Screens (Measurement, Jobs, Invoices, etc.)       │  │
+│  │  - Navigation                                         │  │
+│  └──────────────────────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  State Management (Zustand / Redux Toolkit)          │  │
+│  │  - Authentication State                               │  │
+│  │  - Sync State                                         │  │
+│  │  - Measurement State                                  │  │
+│  └──────────────────────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  Services Layer                                       │  │
+│  │  - API Service (HTTP Client with interceptors)       │  │
+│  │  - GPS Service (Location tracking)                   │  │
+│  │  - Sync Service (Background sync)                    │  │
+│  │  - Storage Service (SQLite/MMKV)                     │  │
+│  └──────────────────────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  Offline Storage (SQLite / MMKV)                     │  │
+│  │  - Local measurements, jobs, invoices                │  │
+│  │  - Sync queue                                         │  │
+│  └──────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              │ HTTPS / REST API
+                              │ JWT Authentication
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      Backend API Server                      │
+│                    (Laravel - Latest LTS)                    │
+│                                                               │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  API Layer (Thin Controllers)                        │  │
+│  │  - Request Validation                                 │  │
+│  │  - Authorization Middleware                           │  │
+│  │  - Response Formatting                                │  │
+│  └──────────────────────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  Service Layer (Business Logic)                      │  │
+│  │  - MeasurementService                                 │  │
+│  │  - JobService                                         │  │
+│  │  - BillingService                                     │  │
+│  │  - PaymentService                                     │  │
+│  │  - SubscriptionService                                │  │
+│  └──────────────────────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  Repository Layer (Data Access)                      │  │
+│  │  - Interface-based repositories                       │  │
+│  │  - Query optimization                                 │  │
+│  │  - Organization filtering                             │  │
+│  └──────────────────────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  Queue Jobs (Background Processing)                  │  │
+│  │  - PDF Generation                                     │  │
+│  │  - Report Generation                                  │  │
+│  │  - Data Sync Processing                               │  │
+│  └──────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      Database Layer                          │
+│                   (MySQL / PostgreSQL)                       │
+│                                                               │
+│  - Spatial Data Support (ST_GeomFromText, ST_Area)          │
+│  - Migrations & Seeders                                      │
+│  - Soft Deletes & Audit Fields                              │
+│  - Proper Indexing                                           │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-## Core Features Implemented
+---
 
-### Mobile App
+## Backend Architecture (Laravel Clean Architecture)
 
-1. **Authentication**
-   - JWT-based authentication with refresh tokens
-   - Secure token storage using MMKV encryption
-   - User registration and login
+### Layer Responsibilities
 
-2. **GPS Services**
-   - Optimized battery usage with configurable accuracy
-   - Walk-around and polygon measurement
-   - Distance, area, and perimeter calculations
-   - Background location tracking with foreground service
-   - Haversine formula for distance calculation
-   - Shoelace formula for polygon area calculation
+#### 1. Controller Layer (Thin)
 
-3. **Internationalization (i18n)**
-   - Sinhala and English language support
-   - Complete translations for UI elements
-   - Configurable language switching
+- HTTP request/response handling
+- Input validation (using Form Requests)
+- Call service layer methods
+- Return standardized JSON responses
+- NO business logic
 
-4. **Local Storage**
-   - MMKV for encrypted key-value storage
-   - SQLite for offline data persistence
-   - Offline queue for data synchronization
+#### 2. Service Layer (Business Logic)
 
-5. **API Client**
-   - Axios-based HTTP client
-   - JWT token injection via interceptors
-   - Automatic token refresh on 401 responses
+- All business workflows
+- Orchestrate multiple repositories
+- Transaction management
+- Complex calculations (e.g., area from GPS points)
+- Event dispatching
+- Call external services
 
-### Backend API
+#### 3. Repository Layer (Data Access)
 
-1. **Authentication & Authorization**
-   - JWT authentication with tymon/jwt-auth
-   - Role-Based Access Control (RBAC) with spatie/laravel-permission
-   - Organization-based data isolation
+- All database queries
+- Eloquent model interactions
+- Query optimization
+- Organization-level filtering
+- Interface contracts for testability
 
-2. **Database Schema**
-   - Users with roles and organizations
-   - Organizations (multi-tenancy support)
-   - Fields with GeoJSON boundary data
-   - Jobs with assignment and tracking
-   - Subscriptions with plan management
-   - Invoices with payment tracking
+#### 4. DTO Layer (Data Transfer Objects)
 
-3. **API Versioning**
-   - RESTful API with v1 prefix
-   - Proper HTTP status codes
-   - JSON responses with error handling
+- Type-safe data containers
+- Request validation
+- Response formatting
+- Decoupling from Eloquent models
 
-4. **Resource Controllers**
-   - Field management (CRUD operations)
-   - Job management
-   - Organization isolation middleware
+#### 5. Background Jobs
 
-## Clean Architecture Implementation
+- PDF generation (invoices, reports)
+- Email notifications
+- Data aggregation
+- Sync processing
 
-### Mobile App Layers
+---
 
-1. **Domain Layer** (`src/domain/`)
-   - Entities: User, Field, Job, GeoPoint
-   - Interfaces for repositories
-   - Business rules and domain logic
+## Mobile Architecture (React Native + Expo)
 
-2. **Application Layer** (`src/application/`)
-   - Use cases for business operations
-   - Orchestrates domain and infrastructure
+### Feature-Based Structure
 
-3. **Infrastructure Layer** (`src/infrastructure/`)
-   - API client implementation
-   - GPS service implementation
-   - Storage implementations (MMKV, SQLite)
-   - External service integrations
-
-4. **Presentation Layer** (`src/presentation/`)
-   - React Native components
-   - Navigation structure
-   - Screen implementations
-
-### Backend Layers
-
-1. **Domain Layer**
-   - Eloquent models with relationships
-   - Business logic and rules
-   - Domain events
-
-2. **Application Layer**
-   - Service classes
-   - Use case implementations
-   - DTOs (Data Transfer Objects)
-
-3. **Infrastructure Layer**
-   - Database migrations
-   - External API integrations
-   - Queue jobs
-   - File storage
-
-4. **Presentation Layer**
-   - API controllers
-   - Request validation
-   - Response formatting
-   - Middleware
-
-## SOLID Principles
-
-- **Single Responsibility**: Each class has one reason to change
-- **Open/Closed**: Classes open for extension, closed for modification
-- **Liskov Substitution**: Derived classes substitutable for base classes
-- **Interface Segregation**: Clients not forced to depend on unused interfaces
-- **Dependency Inversion**: Depend on abstractions, not concretions
-
-## Security Features
-
-1. **Authentication**
-   - JWT tokens with expiration
-   - Secure password hashing (bcrypt)
-   - Token refresh mechanism
-
-2. **Authorization**
-   - Role-Based Access Control (RBAC)
-   - Organization isolation
-   - Permission checks per endpoint
-
-3. **Data Protection**
-   - MMKV encryption for mobile storage
-   - HTTPS for API communication
-   - SQL injection protection (Eloquent ORM)
-   - XSS protection
-
-## GPS Features
-
-### Battery Optimization
-
-- Configurable accuracy levels (HIGH, MEDIUM, LOW)
-- Dynamic interval adjustment
-- Background tracking with foreground service
-- Distance filter to reduce updates
-
-### Measurement Types
-
-1. **Walk Around**: User walks around perimeter
-2. **Polygon**: Manual point placement on map
-3. **Manual**: Direct coordinate entry
-
-### Calculations
-
-- Distance: Haversine formula
-- Area: Shoelace formula for polygons
-- Perimeter: Sum of distances between consecutive points
-
-## API Endpoints
-
-### Authentication
-
-- `POST /api/v1/auth/register` - User registration
-- `POST /api/v1/auth/login` - User login
-- `GET /api/v1/auth/me` - Get authenticated user
-- `POST /api/v1/auth/logout` - Logout
-- `POST /api/v1/auth/refresh` - Refresh token
-
-### Fields
-
-- `GET /api/v1/fields` - List fields (with pagination)
-- `POST /api/v1/fields` - Create field
-- `GET /api/v1/fields/{id}` - Get field details
-- `PUT /api/v1/fields/{id}` - Update field
-- `DELETE /api/v1/fields/{id}` - Delete field
-
-### Jobs
-
-- `GET /api/v1/jobs` - List jobs
-- `POST /api/v1/jobs` - Create job
-- `GET /api/v1/jobs/{id}` - Get job details
-- `PUT /api/v1/jobs/{id}` - Update job
-- `DELETE /api/v1/jobs/{id}` - Delete job
-
-## Database Schema
-
-### Organizations
-
-- Multi-tenant support
-- Organization types: farm, service_provider, cooperative
-- Soft deletes
-
-### Users
-
-- Linked to organizations
-- Roles: admin, manager, driver, field_worker
-- JWT authentication support
-
-### Fields
-
-- GeoJSON boundary storage
-- Area and perimeter in meters
-- Measurement type tracking
-- Linked to organizations and users
-
-### Jobs
-
-- Task management
-- Assignment tracking
-- Status workflow: pending → in_progress → completed
-- Priority levels
-
-### Subscriptions
-
-- Plan management (basic, pro, enterprise)
-- Monthly/yearly billing
-- Feature limitations
-
-### Invoices
-
-- Multiple types (subscription, service, other)
-- Payment tracking
-- Due date management
-
-## Development Setup
-
-### Mobile App
-
-```bash
-cd mobile
-npm install
-npm start
+```
+src/
+├── features/
+│   ├── auth/
+│   │   ├── screens/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── services/
+│   │   └── store/
+│   ├── measurement/
+│   │   ├── screens/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── services/
+│   │   └── store/
+│   ├── jobs/
+│   ├── billing/
+│   ├── expenses/
+│   └── tracking/
+├── shared/
+│   ├── components/
+│   ├── utils/
+│   ├── hooks/
+│   ├── services/
+│   └── types/
+├── services/
+│   ├── api/
+│   ├── gps/
+│   ├── storage/
+│   └── sync/
+├── navigation/
+└── store/
 ```
 
-### Backend API
+### State Management Strategy
 
-```bash
-cd backend
-composer install
-php artisan migrate
-php artisan serve
-```
+- **Zustand** for global app state
+- **React Query** for server state caching
+- Local component state for UI-only state
 
-## Environment Variables
+### Offline-First Design
 
-### Mobile
+1. All write operations save to local SQLite
+2. Queue sync jobs in background
+3. Background task processes sync queue
+4. Conflict resolution: last-write-wins with server authority
+5. Retry failed syncs with exponential backoff
 
-- `EXPO_PUBLIC_API_URL`: Backend API URL
+---
+
+## Authentication & Authorization
+
+### JWT Flow
+
+1. User logs in with credentials
+2. Server validates and returns JWT token + refresh token
+3. Mobile stores tokens securely (Expo SecureStore)
+4. All API requests include Bearer token
+5. Token refresh on expiry
+
+### Role-Based Access Control (RBAC)
+
+- **Admin**: Full system access
+- **Owner**: Manage own organization, drivers, jobs
+- **Driver**: View assigned jobs, log expenses
+- **Broker**: Create jobs, view reports
+- **Accountant**: Financial reports, payments
+
+### Organization-Level Data Isolation
+
+- All queries filtered by `organization_id`
+- Middleware enforces organization context
+- Super Admin can access all organizations
+
+---
+
+## Data Flow Examples
+
+### GPS Land Measurement Flow
+
+**Offline Mode:**
+
+1. User starts measurement
+2. GPS coordinates collected every X seconds
+3. Coordinates stored in SQLite
+4. Area calculated locally using Turf.js
+5. Measurement saved to local DB with `sync_status: pending`
+6. Background task queues sync
+
+**Online Mode / Sync:**
+
+1. Sync service reads pending measurements
+2. POST to `/api/measurements` with coordinate array
+3. Server validates, calculates area server-side
+4. Returns measurement ID
+5. Local record updated with server ID and `sync_status: synced`
+
+### Invoice Generation Flow
+
+1. User selects completed job
+2. Request POST `/api/invoices` with job_id
+3. Service layer:
+   - Fetches job and measurement data
+   - Calculates amount (area × rate)
+   - Creates invoice record
+   - Dispatches job to generate PDF
+4. Returns invoice data (without PDF initially)
+5. Background job generates PDF
+6. Mobile polls or receives notification when PDF ready
+
+---
+
+## Scalability Considerations
 
 ### Backend
 
-- `DB_CONNECTION`: Database connection
-- `JWT_SECRET`: JWT signing secret
-- `QUEUE_CONNECTION`: Queue driver
+- **Queue Workers**: Multiple workers for background jobs
+- **Database Indexing**: Proper indexes on frequently queried fields
+- **Caching**: Redis for session, frequently accessed data
+- **Load Balancing**: Horizontal scaling with stateless API
+- **Database Optimization**: Query optimization, pagination
 
-## Next Steps
+### Mobile
 
-1. Implement remaining API controllers (Jobs, Subscriptions, Invoices)
-2. Add map integration (Google Maps/Mapbox)
-3. Implement Bluetooth ESC/POS printing
-4. Add PDF generation for reports
-5. Implement offline synchronization
-6. Add comprehensive testing
-7. Set up CI/CD pipeline
-8. Deploy to production
+- **Lazy Loading**: Load data as needed
+- **Image Optimization**: Compress before upload
+- **Background Sync**: Batch operations
+- **Local Caching**: Cache API responses
+- **Memory Management**: Proper cleanup of GPS listeners
 
-## License
+---
 
-MIT License
+## Security Measures
+
+1. **Input Validation**: All inputs validated (backend + frontend)
+2. **SQL Injection Prevention**: Eloquent ORM, prepared statements
+3. **XSS Prevention**: Output encoding
+4. **CSRF Protection**: Token-based
+5. **Rate Limiting**: Throttle API requests
+6. **Encryption**: Sensitive data encrypted at rest
+7. **HTTPS Only**: All communication over TLS
+8. **JWT Expiry**: Short-lived access tokens
+9. **Audit Logging**: Track all critical operations
+10. **Role Verification**: Every endpoint checks permissions
+
+---
+
+## Technology Stack Summary
+
+### Backend
+
+- **Framework**: Laravel 10.x (LTS)
+- **Language**: PHP 8.1+
+- **Database**: MySQL 8.0+ or PostgreSQL 13+
+- **Authentication**: Laravel Sanctum / JWT
+- **Queue**: Redis + Laravel Horizon
+- **PDF Generation**: Laravel Dompdf / Snappy
+- **Spatial**: Spatial MySQL extensions or PostGIS
+
+### Mobile
+
+- **Framework**: React Native (Expo SDK 49+)
+- **Language**: TypeScript 5+
+- **State Management**: Zustand 4+
+- **API Client**: Axios
+- **Offline Storage**: SQLite (expo-sqlite) + MMKV
+- **Maps**: Google Maps (react-native-maps) or Mapbox
+- **GPS**: expo-location
+- **Background Tasks**: expo-background-fetch
+- **i18n**: react-i18next
+- **PDF Viewer**: react-native-pdf
+
+### DevOps
+
+- **Version Control**: Git
+- **CI/CD**: GitHub Actions
+- **Backend Hosting**: AWS/DigitalOcean/Heroku
+- **Database**: Managed MySQL/PostgreSQL
+- **File Storage**: S3-compatible storage
+- **Mobile Distribution**: Expo EAS Build
+
+---
+
+## Performance Targets
+
+- API response time: < 200ms (95th percentile)
+- Mobile app launch: < 3s
+- GPS measurement accuracy: ±5 meters
+- Offline operation: Full functionality without internet
+- Sync time: < 10s for typical batch
+- PDF generation: < 5s per invoice
+- Support: 10,000+ concurrent users
+
+---
+
+## Future Enhancements
+
+1. Real-time GPS tracking with WebSockets
+2. Machine learning for area prediction
+3. Weather API integration
+4. Satellite imagery overlay
+5. Voice commands (Sinhala)
+6. WhatsApp integration for invoices
+7. Advanced analytics dashboard
+8. Mobile web version
+9. Integration with payment gateways (LankaPay, etc.)
+10. Drone measurement support
