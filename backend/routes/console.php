@@ -1,12 +1,8 @@
 <?php
 
 use Illuminate\Foundation\Inspiring;
-use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\Artisan;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
-})->describe('Display an inspiring quote');
-
-return function (Schedule $schedule) {
-    // Define your scheduled commands here
-};
+})->purpose('Display an inspiring quote');

@@ -2,53 +2,104 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\DTOs\Subscription\CheckLimitDTO;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CreateSubscriptionRequest;
-use App\Http\Resources\SubscriptionResource;
-use App\Models\Subscription;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Http\Requests\Subscription\CheckLimitRequest;
+use App\Http\Resources\SubscriptionPackageResource;
+use App\Http\Resources\UsageStatsResource;
+use App\Services\SubscriptionService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 
 class SubscriptionController extends Controller
 {
-    public function index()
+    public function __construct(
+        protected SubscriptionService $subscriptionService
+    ) {}
+
+    /**
+     * List all available subscription packages
+     */
+    public function packages(): JsonResponse
     {
-        $subscriptions = Subscription::where('organization_id', Auth::user()->organization_id)->get();
-        return SubscriptionResource::collection($subscriptions);
+        try {
+            $packages = $this->subscriptionService->getAllPackages();
+
+            return $this->successResponse(
+                SubscriptionPackageResource::collection($packages),
+                'Subscription packages retrieved successfully.'
+            );
+        } catch (\Exception $e) {
+            \Log::error('Failed to retrieve subscription packages', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return $this->errorResponse(
+                'Failed to retrieve subscription packages.',
+                Response::HTTP_INTERNAL_SERVER_ERROR
+            );
+        }
     }
 
-    public function store(CreateSubscriptionRequest $request)
+    /**
+     * Get current organization's subscription with usage stats
+     */
+    public function current(): JsonResponse
     {
-        $subscription = Subscription::create([
-            'organization_id' => Auth::user()->organization_id,
-            'tier' => $request->tier,
-            'start_date' => now(),
-            'end_date' => now()->addMonth($request->duration),
-            'status' => 'active',
-        ]);
+        try {
+            $organization = auth()->user()->organization;
+            
+            $subscription = $this->subscriptionService->getCurrentSubscription($organization);
 
-        return new SubscriptionResource($subscription);
+            return $this->successResponse(
+                new UsageStatsResource($subscription),
+                'Current subscription retrieved successfully.'
+            );
+        } catch (\Exception $e) {
+            \Log::error('Failed to retrieve current subscription', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return $this->errorResponse(
+                'Failed to retrieve current subscription.',
+                Response::HTTP_INTERNAL_SERVER_ERROR
+            );
+        }
     }
 
-    public function show($id)
+    /**
+     * Check if organization can perform an action
+     */
+    public function checkLimit(CheckLimitRequest $request): JsonResponse
     {
-        $subscription = Subscription::findOrFail($id);
-        return new SubscriptionResource($subscription);
-    }
+        try {
+            $dto = CheckLimitDTO::fromArray($request->validated());
+            $organization = auth()->user()->organization;
+            
+            $result = $this->subscriptionService->checkLimit(
+                $organization,
+                $dto->resource,
+                $dto->count
+            );
 
-    public function update(CreateSubscriptionRequest $request, $id)
-    {
-        $subscription = Subscription::findOrFail($id);
-        $subscription->update($request->validated());
+            return $this->successResponse(
+                $result,
+                $result['can_perform'] 
+                    ? 'Action is allowed.' 
+                    : 'Action would exceed package limits.'
+            );
+        } catch (\Exception $e) {
+            \Log::error('Failed to check subscription limit', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
 
-        return new SubscriptionResource($subscription);
-    }
-
-    public function destroy($id)
-    {
-        $subscription = Subscription::findOrFail($id);
-        $subscription->delete();
-
-        return response()->json(['message' => 'Subscription deleted successfully.']);
+            return $this->errorResponse(
+                'Failed to check subscription limit.',
+                Response::HTTP_INTERNAL_SERVER_ERROR
+            );
+        }
     }
 }

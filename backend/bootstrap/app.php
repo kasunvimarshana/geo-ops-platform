@@ -1,22 +1,23 @@
 <?php
 
 use Illuminate\Foundation\Application;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Route;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
 
-require __DIR__.'/../vendor/autoload.php';
-
-$app = new Application(
-    $_ENV['APP_BASE_PATH'] ?? dirname(__DIR__)
-);
-
-// Load the application configuration
-$app->make('config')->set('app', require_once __DIR__.'/../config/app.php');
-
-// Load the application routes
-Route::middleware('api')->group(function () {
-    require __DIR__.'/../routes/api.php';
-});
-
-// Run the application
-$app->run();
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->alias([
+            'jwt.auth' => \App\Http\Middleware\JwtAuthMiddleware::class,
+            'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'organization.isolation' => \App\Http\Middleware\OrganizationIsolationMiddleware::class,
+        ]);
+    })
+    ->withExceptions(function (Exceptions $exceptions): void {
+        //
+    })->create();
