@@ -1,93 +1,42 @@
-# GPS Field Management Platform
+# 🌾 GeoOps Platform
 
-**✅ PRODUCTION READY - Complete agricultural field service management system with GPS land measurement, job management, billing, and offline-first mobile capabilities.**
+> **GPS Land Measurement & Agricultural Field Service Management System**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Laravel](https://img.shields.io/badge/Laravel-11.x-FF2D20?logo=laravel)](https://laravel.com)
-[![React Native](https://img.shields.io/badge/React_Native-Expo-61DAFB?logo=react)](https://expo.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript)](https://www.typescriptlang.org/)
-[![Status](https://img.shields.io/badge/Status-Production_Ready-success)](./PROJECT_STATUS.md)
-[![Security](https://img.shields.io/badge/Security-0_Vulnerabilities-brightgreen)](./PROJECT_STATUS.md)
+A production-ready, enterprise-grade platform for agricultural field service management with GPS land measurement, job tracking, billing, and offline-first mobile capabilities.
+
+**Tech Stack:** Laravel (Backend) + React Native with Expo (Mobile) | Built for scale and reliability
 
 ---
 
 ## 📋 Table of Contents
 
-- [Project Status](#-project-status)
-- [Quick Start](#-quick-start)
 - [Overview](#overview)
 - [Key Features](#key-features)
 - [Technology Stack](#technology-stack)
-- [System Architecture](#system-architecture)
-- [Getting Started](#getting-started)
-- [Documentation](#documentation)
 - [Project Structure](#project-structure)
-- [Development](#development)
-- [Deployment](#deployment)
+- [Quick Start](#quick-start)
+- [Documentation](#documentation)
+- [Architecture](#architecture)
 - [Contributing](#contributing)
 - [License](#license)
 
 ---
 
-## 🎉 Project Status
+## 🎯 Overview
 
-**Version:** 1.0.0  
-**Status:** ✅ **PRODUCTION READY**  
-**Last Updated:** January 18, 2026
+The GeoOps Platform is a comprehensive solution for managing agricultural field services. It enables:
 
-### Implementation Complete
+- **Farmers** to request and track field services
+- **Service Providers** to manage drivers, machines, and operations
+- **Drivers** to execute jobs with GPS tracking
+- **Accountants** to manage billing, payments, and financial reports
 
-- ✅ **Backend (Laravel 11.x)**: 41 PHP files, 25 API endpoints, Clean Architecture
-- ✅ **Mobile (React Native)**: 42 TypeScript files, 5 screens, Offline-first
-- ✅ **Documentation**: 85KB+ comprehensive guides
-- ✅ **Security**: Zero vulnerabilities (CodeQL verified)
-- ✅ **Total Code**: ~19,500 lines across 92 files
+The system is designed for **thousands of users across Sri Lanka** with:
 
-**See [PROJECT_STATUS.md](./PROJECT_STATUS.md) for detailed information.**
-
----
-
-## ⚡ Quick Start
-
-**Get running in 10 minutes!**
-
-### Backend
-
-```bash
-cd backend
-composer install
-cp .env.example .env
-php artisan key:generate
-php artisan jwt:secret
-php artisan migrate --seed
-php artisan serve
-```
-
-### Mobile
-
-```bash
-cd mobile
-npm install
-npx expo start
-```
-
-**Login:** `admin@geo-ops.com` / `password`
-
-**See [QUICK_START.md](./QUICK_START.md) for detailed setup instructions.**
-
----
-
-## 🌟 Overview
-
-The GPS Field Management Platform is an enterprise-grade solution designed for farmers, machine owners, drivers, and brokers in Sri Lanka and similar agricultural markets. Built with Clean Architecture principles, SOLID design patterns, and offline-first mobile capabilities, it provides comprehensive functionality for GPS-based land measurement, job lifecycle management, automated billing, expense tracking, and financial reporting.
-
-### Target Users
-
-- **Farmers**: Land measurement, job requests, invoice management
-- **Machine Owners**: Equipment management, revenue tracking, business operations
-- **Drivers/Operators**: Job assignments, GPS tracking, expense logging
-- **Brokers/Agents**: Customer management, job coordination
-- **Accountants**: Financial reporting, payment tracking, expense management
+- ✅ **Offline-first architecture** - Works without internet
+- ✅ **Clean Architecture** - Maintainable and testable
+- ✅ **Bilingual support** - Sinhala and English
+- ✅ **Production-ready** - Scalable and secure
 
 ---
 
@@ -95,247 +44,107 @@ The GPS Field Management Platform is an enterprise-grade solution designed for f
 
 ### 🗺️ GPS Land Measurement
 
-- Walk-around GPS measurement with real-time polygon visualization
-- Manual point-based polygon drawing
-- Accurate area calculation (acres, hectares, square meters)
-- Measurement history and editing capabilities
-- Spatial data storage and geographic queries
+- Walk-around GPS measurement with real-time polygon drawing
+- Point-based land measurement
+- Accurate area calculation (acres & hectares)
+- Measurement history and editing
+- Coordinate storage with spatial indexing
 
-### 📋 Job & Field Work Management
+### 👷 Job Management
 
-- Complete job lifecycle: Pending → Assigned → In Progress → Completed
+- Complete job lifecycle (Pending → In Progress → Completed)
 - Driver and machine assignment
-- Customer information management
-- Scheduled and priority-based job planning
-- Job-linked land plots and measurements
-
-### 📡 GPS Tracking
-
-- Real-time driver location tracking
-- Historical movement logs and playback
-- Job-based tracking with start/end times
-- Distance and duration calculation
-- Battery-optimized location sampling
+- Real-time GPS tracking during job execution
+- Job history and reporting
+- Work area validation against measured land
 
 ### 💰 Billing & Invoicing
 
-- Automated invoice generation based on measured area
-- Configurable rate per unit (acre/hectare)
-- Professional PDF invoice generation
-- Invoice status tracking (Draft, Sent, Paid, Overdue)
-- Email invoice delivery
-- Multi-currency support (default: LKR)
-- **Bluetooth thermal printer support for on-site printing**
-
-### 🖨️ Bluetooth Thermal Printer Integration
-
-- Bluetooth device discovery and pairing
-- Direct printing of invoices, receipts, and job summaries
-- ESC/POS-compatible thermal printer support
-- Offline print queue with automatic retry
-- PDF fallback when printing unavailable
-- Print queue management with status tracking
-- Clean abstraction layer for printer logic
-
-### 💵 Expense Management
-
-- Fuel, maintenance, parts, and labor tracking
-- Job-specific and general expenses
-- Receipt photo upload and storage
-- Category-based expense reporting
-- Vendor management
+- Automated invoice generation from measured area
+- Configurable rates per acre/hectare
+- PDF invoice generation (background jobs)
+- Multiple invoice statuses (Draft, Sent, Paid, Overdue)
+- Invoice sharing via email/WhatsApp
 
 ### 💳 Payments & Ledger
 
-- Multiple payment methods (Cash, Bank Transfer, Mobile Money, etc.)
-- Customer balance tracking
-- Income vs expense reports
-- Date-range financial summaries
-- Payment history and reconciliation
+- Multiple payment methods (Cash, Bank Transfer, Mobile Money)
+- Payment tracking against invoices
+- Customer balance management
+- Payment receipts
+- Financial reports and analytics
 
-### 📦 Subscription Management
+### 📊 Expense Management
 
-- Three-tier packages: Free, Basic, Pro
-- Usage-based limits enforcement
-- Feature gating per package
-- Automatic expiry handling
-- Usage statistics tracking
+- Fuel tracking
+- Parts and maintenance expenses
+- Machine-wise and driver-wise expense categorization
+- Receipt image uploads
+- Expense reports
 
-### 📱 Offline-First Mobile App
+### 📈 Reports & Analytics
 
-- Full functionality without internet connectivity
-- Local SQLite database for data persistence
-- Background synchronization when online
-- Conflict resolution strategies
-- Reliable queue management with retry logic
-- Network state monitoring
+- Dashboard with key metrics
+- Financial reports (Income vs Expenses)
+- Job completion reports
+- Customer balance reports
+- Date-range filtering and export
 
-### 🌍 Multi-Language Support
+### 🔒 Multi-tenancy & Subscriptions
 
-- Sinhala (සිංහල)
-- English
-- Easy extensibility for additional languages
-- RTL support ready
-
-### 🔒 Security & Authentication
-
-- JWT-based stateless authentication
-- Role-based access control (RBAC)
 - Organization-level data isolation
-- Encrypted sensitive data
-- API rate limiting per subscription tier
-- Comprehensive audit logging
+- Three subscription tiers (Free, Basic, Pro)
+- Usage limit enforcement (measurements, drivers, machines)
+- Subscription expiry handling
+
+### 📡 Offline-First Mobile App
+
+- Works completely offline
+- Local SQLite database
+- Background synchronization
+- Conflict resolution
+- Automatic retry logic
+
+### 🔐 Security & Authentication
+
+- JWT-based authentication
+- Role-based access control (Admin, Owner, Driver, Broker, Accountant)
+- API rate limiting
+- Secure file storage
+- Audit logging
 
 ---
 
 ## 🛠️ Technology Stack
 
-### Backend
+### Backend (Laravel)
 
-- **Framework**: Laravel 11.x (PHP 8.3+)
-- **Database**: MySQL 8.0+ / PostgreSQL 15+ with spatial extensions
+- **Framework**: Laravel 11.x (LTS)
+- **Language**: PHP 8.2+
+- **Database**: MySQL 8.0+ / PostgreSQL 15+
+- **Cache/Queue**: Redis
 - **Authentication**: JWT (tymon/jwt-auth)
-- **Cache & Queue**: Redis 6.0+
-- **Storage**: AWS S3 / Compatible cloud storage
 - **PDF Generation**: DomPDF
-- **Spatial Data**: Laravel Eloquent Spatial
+- **Architecture**: Clean Architecture (Controllers → Services → Repositories)
 
-### Mobile Frontend
+### Mobile (React Native + Expo)
 
-- **Framework**: React Native via Expo SDK 51+
-- **Language**: TypeScript 5.x
+- **Framework**: Expo SDK 50+
+- **Language**: TypeScript 5+
 - **State Management**: Zustand
-- **Offline Storage**: SQLite (expo-sqlite) + MMKV
-- **Maps**: Google Maps / Mapbox GL
+- **Offline Storage**: Expo SQLite
+- **Maps**: react-native-maps (Google Maps / Mapbox)
 - **GPS**: expo-location with background tracking
-- **Navigation**: React Navigation 6.x
-- **API Client**: Axios with interceptors
+- **HTTP**: Axios with interceptors
+- **i18n**: react-i18next (Sinhala/English)
 
-### DevOps & Tools
+### Infrastructure
 
-- **Version Control**: Git / GitHub
-- **Package Management**: Composer, npm
-- **Code Quality**: PHPStan, ESLint, Prettier
-- **Testing**: PHPUnit, Jest
-- **Deployment**: Docker-ready, CI/CD compatible
-
----
-
-## 🏗️ System Architecture
-
-```
-┌─────────────────────────────────────────────────────────┐
-│         Mobile App (React Native Expo)                  │
-│  GPS | Jobs | Billing | Tracking | Offline Storage     │
-└──────────────────┬──────────────────────────────────────┘
-                   │ REST API (HTTPS, JWT)
-                   ▼
-┌─────────────────────────────────────────────────────────┐
-│            Laravel Backend API                          │
-│  Controllers | Services | Repositories | Jobs          │
-└──────────────────┬──────────────────────────────────────┘
-                   │
-    ┌──────────────┼──────────────┐
-    ▼              ▼              ▼
-┌─────────┐  ┌─────────┐  ┌─────────┐
-│  MySQL  │  │  Redis  │  │   S3    │
-│PostgreSQL│  │  Cache  │  │ Storage │
-└─────────┘  └─────────┘  └─────────┘
-```
-
-**Architecture Principles:**
-
-- ✅ Clean Architecture with clear layer separation
-- ✅ SOLID principles throughout codebase
-- ✅ DRY (Don't Repeat Yourself)
-- ✅ KISS (Keep It Simple, Stupid)
-- ✅ Domain-Driven Design
-- ✅ Repository Pattern for data access
-- ✅ Service Layer for business logic
-- ✅ DTO Pattern for data transfer
-- ✅ Dependency Injection
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-**Backend:**
-
-- PHP 8.3 or higher
-- Composer 2.x
-- MySQL 8.0+ or PostgreSQL 15+
-- Redis 6.0+
-- Node.js 18+ (for asset compilation)
-
-**Mobile:**
-
-- Node.js 18+
-- npm or yarn
-- Expo CLI
-- iOS Simulator (macOS) or Android Emulator
-
-### Quick Start
-
-#### 1. Clone Repository
-
-```bash
-git clone https://github.com/kasunvimarshana/geo-ops-platform.git
-cd geo-ops-platform
-```
-
-#### 2. Backend Setup
-
-```bash
-cd backend
-composer install
-cp .env.example .env
-php artisan key:generate
-php artisan jwt:secret
-
-# Configure database in .env, then:
-php artisan migrate --seed
-php artisan serve
-```
-
-Backend will be available at `http://localhost:8000`
-
-#### 3. Mobile Setup
-
-```bash
-cd mobile
-npm install
-npx expo start
-```
-
-Mobile app will open in Expo Go app or simulator.
-
----
-
-## 📚 Documentation
-
-Comprehensive documentation is available in the repository:
-
-### Getting Started
-
-- **[QUICK_START.md](QUICK_START.md)** - Get running in 10 minutes (8.8KB)
-- **[PROJECT_STATUS.md](PROJECT_STATUS.md)** - Complete project status and metrics (13KB)
-
-### Technical Documentation
-
-- **[System Architecture](docs/ARCHITECTURE.md)** - Complete architecture overview, design patterns, and scalability (19KB)
-- **[Database Schema](docs/DATABASE_SCHEMA.md)** - Detailed database design, ERD, table definitions (20KB)
-- **[API Documentation](docs/API_DOCUMENTATION.md)** - Complete REST API reference with examples (30KB)
-- **[Deployment Guide](docs/DEPLOYMENT.md)** - Production deployment for backend and mobile (16KB)
-
-### Implementation Guides
-
-- **[Backend Guide](backend/README_BACKEND.md)** - Backend implementation details and usage
-- **[Mobile Guide](mobile/README.md)** - Mobile app setup and features
-- **[Mobile Implementation](mobile/IMPLEMENTATION.md)** - Technical implementation details (12KB)
-- **[Mobile API Integration](mobile/API_DOCUMENTATION.md)** - API integration guide (10KB)
-- **[Mobile Improvements](mobile/IMPROVEMENTS.md)** - Future enhancements roadmap (9KB)
+- **Web Server**: Nginx
+- **SSL**: Let's Encrypt
+- **Storage**: AWS S3 / Local
+- **Monitoring**: Sentry / Laravel Telescope
+- **CI/CD**: GitHub Actions
 
 ---
 
@@ -343,188 +152,412 @@ Comprehensive documentation is available in the repository:
 
 ```
 geo-ops-platform/
-├── backend/                    # Laravel Backend API
+├── backend/                    # Laravel API
 │   ├── app/
-│   │   ├── Domain/            # Core business logic
-│   │   │   ├── Entities/      # Domain entities
-│   │   │   ├── Repositories/  # Repository interfaces
-│   │   │   └── Services/      # Domain services
-│   │   ├── Application/       # Application layer
-│   │   │   ├── DTOs/          # Data transfer objects
-│   │   │   ├── Services/      # Application services
-│   │   │   └── UseCases/      # Use case implementations
-│   │   ├── Infrastructure/    # External concerns
-│   │   │   ├── Repositories/  # Repository implementations
-│   │   │   ├── Services/      # External service implementations
-│   │   │   └── Persistence/   # Migrations, seeders
-│   │   └── Presentation/      # HTTP layer
-│   │       ├── Controllers/   # API controllers
-│   │       ├── Middleware/    # HTTP middleware
-│   │       ├── Requests/      # Form requests
-│   │       └── Resources/     # API resources
+│   │   ├── DTOs/              # Data Transfer Objects
+│   │   ├── Http/
+│   │   │   ├── Controllers/   # API Controllers
+│   │   │   ├── Requests/      # Form Request Validation
+│   │   │   └── Resources/     # API Resources
+│   │   ├── Models/            # Eloquent Models
+│   │   ├── Repositories/      # Data Access Layer
+│   │   ├── Services/          # Business Logic
+│   │   └── Jobs/              # Background Jobs
 │   ├── database/
-│   │   ├── migrations/        # Database migrations
-│   │   └── seeders/           # Database seeders
-│   ├── routes/                # API routes
-│   └── tests/                 # Automated tests
-│
-├── mobile/                     # React Native Mobile App
+│   │   ├── migrations/
+│   │   └── seeders/
+│   └── routes/
+│       └── api.php
+├── mobile/                     # React Native Expo App
 │   ├── src/
-│   │   ├── features/          # Feature modules
-│   │   │   ├── auth/          # Authentication
-│   │   │   ├── gps/           # GPS & Measurement
-│   │   │   ├── jobs/          # Job Management
-│   │   │   ├── billing/       # Billing & Invoices
-│   │   │   ├── expenses/      # Expense Management
-│   │   │   └── tracking/      # Driver Tracking
-│   │   ├── shared/            # Shared code
-│   │   │   ├── components/    # Reusable UI components
-│   │   │   ├── services/      # API, storage, sync
-│   │   │   ├── utils/         # Helper functions
-│   │   │   └── types/         # TypeScript types
-│   │   ├── navigation/        # Navigation config
-│   │   ├── store/             # Global state (Zustand)
-│   │   ├── locales/           # i18n translations
-│   │   └── theme/             # Styling & theming
-│   └── assets/                # Images, fonts
-│
-└── docs/                       # Documentation
-    ├── ARCHITECTURE.md         # System architecture
-    ├── DATABASE_SCHEMA.md      # Database design
-    ├── API_DOCUMENTATION.md    # API reference
-    └── DEPLOYMENT.md           # Deployment guide
+│   │   ├── api/               # API Client
+│   │   ├── components/        # Reusable Components
+│   │   ├── database/          # SQLite Database
+│   │   ├── features/          # Feature Modules
+│   │   ├── navigation/        # React Navigation
+│   │   ├── services/          # Business Services
+│   │   ├── store/             # Zustand Stores
+│   │   └── utils/             # Utility Functions
+│   └── assets/
+│       └── locales/           # i18n Translations
+├── docs/                       # Additional Documentation
+├── ARCHITECTURE.md            # System Architecture
+├── DATABASE_SCHEMA.md         # Database Design & ERD
+├── API_SPECIFICATION.md       # API Endpoints
+├── BACKEND_STRUCTURE.md       # Backend Code Structure
+├── FRONTEND_STRUCTURE.md      # Mobile App Structure
+├── SETUP_GUIDE.md             # Development Setup
+├── DEPLOYMENT_GUIDE.md        # Production Deployment
+├── SEED_DATA.md               # Sample Data
+└── README.md                  # This file
 ```
 
 ---
 
-## 💻 Development
+## 🚀 Quick Start
 
-### Backend Development
+### Automated Setup (Recommended)
 
-#### Run Development Server
+We provide automated setup scripts to quickly initialize the project:
+
+#### Backend Setup
+
+```bash
+# Run the backend setup script
+./setup-backend.sh
+
+# This will:
+# - Create Laravel 11.x project
+# - Install JWT Auth, DomPDF, and Telescope
+# - Configure environment files
+# - Generate application and JWT keys
+```
+
+#### Mobile Setup
+
+```bash
+# Run the mobile setup script
+./setup-mobile.sh
+
+# This will:
+# - Create Expo TypeScript project
+# - Install all required dependencies
+# - Set up folder structure
+# - Configure environment files
+```
+
+### Manual Setup
+
+If you prefer manual setup:
+
+#### Backend
 
 ```bash
 cd backend
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan jwt:secret
+php artisan migrate --seed
 php artisan serve
 ```
 
-#### Run Tests
-
-```bash
-php artisan test
-```
-
-#### Create Migration
-
-```bash
-php artisan make:migration create_table_name
-```
-
-#### Run Queue Worker
-
-```bash
-php artisan queue:work
-```
-
-### Mobile Development
-
-#### Start Development Server
+#### Mobile
 
 ```bash
 cd mobile
-npx expo start
+npm install
+cp .env.example .env
+npm start
 ```
 
-#### Run on iOS Simulator
+**📖 For detailed step-by-step instructions, see [QUICKSTART.md](QUICKSTART.md)**
 
-```bash
-npx expo start --ios
+---
+
+## 📚 Documentation
+
+| Document                                       | Description                                           |
+| ---------------------------------------------- | ----------------------------------------------------- |
+| [ARCHITECTURE.md](ARCHITECTURE.md)             | System architecture, design patterns, and scalability |
+| [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md)       | Complete database schema with ERD                     |
+| [API_SPECIFICATION.md](API_SPECIFICATION.md)   | RESTful API endpoint documentation                    |
+| [BACKEND_STRUCTURE.md](BACKEND_STRUCTURE.md)   | Laravel backend code organization                     |
+| [FRONTEND_STRUCTURE.md](FRONTEND_STRUCTURE.md) | React Native app structure                            |
+| [SETUP_GUIDE.md](SETUP_GUIDE.md)               | Local development setup guide                         |
+| [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)     | Production deployment instructions                    |
+| [SEED_DATA.md](SEED_DATA.md)                   | Sample data for testing                               |
+
+---
+
+## 🏗️ Architecture
+
+### Clean Architecture Layers
+
+```
+┌─────────────────────────────────────────┐
+│        Presentation Layer               │
+│     (Controllers, Resources)            │
+├─────────────────────────────────────────┤
+│       Application Layer                 │
+│    (Services, Business Logic)           │
+├─────────────────────────────────────────┤
+│         Domain Layer                    │
+│      (Models, DTOs)                     │
+├─────────────────────────────────────────┤
+│      Infrastructure Layer               │
+│   (Repositories, External APIs)         │
+└─────────────────────────────────────────┘
 ```
 
-#### Run on Android Emulator
+### Design Principles
 
-```bash
-npx expo start --android
+- ✅ **SOLID** - Single Responsibility, Open/Closed, etc.
+- ✅ **DRY** - Don't Repeat Yourself
+- ✅ **KISS** - Keep It Simple, Stupid
+- ✅ **Clean Code** - Readable and maintainable
+- ✅ **Repository Pattern** - Data access abstraction
+- ✅ **Service Layer** - Business logic isolation
+
+**📖 For detailed architecture, see [ARCHITECTURE.md](ARCHITECTURE.md)**
+
+---
+
+## 🔑 Key Endpoints
+
+### Authentication
+
+```
+POST   /api/v1/auth/register
+POST   /api/v1/auth/login
+POST   /api/v1/auth/logout
+GET    /api/v1/auth/me
 ```
 
-#### Run Tests
+### Land Management
+
+```
+GET    /api/v1/lands
+POST   /api/v1/lands
+GET    /api/v1/lands/{id}
+PUT    /api/v1/lands/{id}
+DELETE /api/v1/lands/{id}
+```
+
+### Job Management
+
+```
+GET    /api/v1/jobs
+POST   /api/v1/jobs
+POST   /api/v1/jobs/{id}/start
+POST   /api/v1/jobs/{id}/complete
+POST   /api/v1/jobs/{id}/tracking
+```
+
+### Invoicing
+
+```
+GET    /api/v1/invoices
+POST   /api/v1/invoices
+GET    /api/v1/invoices/{id}/pdf
+```
+
+**📖 For complete API documentation, see [API_SPECIFICATION.md](API_SPECIFICATION.md)**
+
+---
+
+## 🌐 Deployment
+
+### Production Requirements
+
+- Ubuntu 22.04 LTS server
+- 4+ CPU cores, 8GB+ RAM
+- MySQL/PostgreSQL database
+- Redis for cache & queues
+- Nginx web server
+- SSL certificate (Let's Encrypt)
+- Supervisor for queue workers
+
+### Quick Deploy
 
 ```bash
+# Backend
+composer install --optimize-autoloader --no-dev
+php artisan config:cache
+php artisan route:cache
+php artisan migrate --force
+
+# Setup queue workers
+sudo supervisorctl start geo-ops-worker:*
+
+# Configure Nginx
+sudo systemctl restart nginx
+```
+
+**📖 For complete deployment guide, see [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)**
+
+---
+
+## 🧪 Testing
+
+### Backend Tests
+
+```bash
+cd backend
+php artisan test
+```
+
+### Mobile Tests
+
+```bash
+cd mobile
 npm test
 ```
 
 ---
 
-## 🚢 Deployment
+## 📱 Mobile App
 
-### Backend Deployment
+### Features Highlight
 
-1. **Server Requirements**: Ubuntu 22.04 LTS, PHP 8.3, MySQL/PostgreSQL, Redis, Nginx
-2. **Environment Setup**: Configure `.env` with production settings
-3. **Database Migration**: `php artisan migrate --force`
-4. **Optimization**: Cache config, routes, and views
-5. **Queue Workers**: Set up systemd service for queue processing
-6. **Cron Jobs**: Configure Laravel scheduler
+- 📍 Real-time GPS tracking with battery optimization
+- 🗺️ Interactive map with polygon drawing
+- 💾 Offline-first with SQLite storage
+- 🔄 Background sync with conflict resolution
+- 🌐 Bilingual UI (Sinhala/English)
+- 📊 Dashboard with statistics
+- 📄 PDF generation and sharing
 
-See [Deployment Guide](docs/DEPLOYMENT.md) for detailed instructions.
+### Build for Production
 
-### Mobile App Deployment
+```bash
+# Android
+eas build --platform android --profile production
 
-1. **Configure EAS Build**: `eas build:configure`
-2. **Build Android**: `eas build --platform android --profile production`
-3. **Build iOS**: `eas build --platform ios --profile production`
-4. **Submit to Stores**: Google Play Store and Apple App Store
+# iOS
+eas build --platform ios --profile production
+```
+
+---
+
+## 👥 User Roles
+
+- **Admin** - Full system access, organization management
+- **Owner** - Business owner, manage customers and machines
+- **Driver** - Execute jobs, track GPS, log expenses
+- **Broker** - Coordinate between farmers and service providers
+- **Accountant** - Handle billing, payments, and reports
+
+---
+
+## 💡 Use Cases
+
+1. **Farmer** requests land measurement service
+2. **Admin** creates customer record and assigns job
+3. **Driver** measures land using GPS walk-around
+4. **System** calculates area and creates land record
+5. **Admin** creates job for plowing with pricing
+6. **Driver** starts job and GPS tracking begins
+7. **Driver** completes job
+8. **System** generates invoice automatically
+9. **Accountant** sends invoice to farmer
+10. **Farmer** makes payment
+11. **System** updates ledger and customer balance
+
+---
+
+## 🔐 Security Features
+
+- JWT token authentication with refresh
+- Role-based access control (RBAC)
+- Organization-level data isolation
+- SQL injection protection
+- XSS protection headers
+- CSRF token validation
+- Rate limiting on API endpoints
+- Secure file storage
+- Audit logging for all actions
+
+---
+
+## 📊 Database Schema
+
+### Core Tables
+
+- `organizations` - Multi-tenant organizations
+- `users` - System users with roles
+- `customers` - Farmers/clients
+- `lands` - Measured land parcels with GPS polygons
+- `jobs` - Field work jobs
+- `job_tracking` - GPS tracking history
+- `invoices` - Billing invoices
+- `payments` - Payment records
+- `expenses` - Business expenses
+- `machines` - Agricultural equipment
+- `drivers` - Driver details
+
+**📖 For complete schema, see [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md)**
+
+---
+
+## 🌍 Localization
+
+Supports Sinhala (සිංහල) and English:
+
+```typescript
+// Example
+t("dashboard.welcome");
+// English: "Welcome"
+// Sinhala: "ආයුබෝවන්"
+```
+
+---
+
+## 📈 Scalability
+
+The system is designed to handle:
+
+- **10,000+** active users
+- **100,000+** land measurements
+- **500,000+** job records
+- **1M+** tracking points
+
+### Scaling Strategies
+
+- Horizontal scaling with load balancer
+- Database read replicas
+- Redis clustering for cache/queue
+- CDN for static assets
+- Background job processing
+- API response caching
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please follow these guidelines:
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on:
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+- Development workflow
+- Coding standards (PSR-12 for PHP, Airbnb for TypeScript)
+- Testing requirements
+- Pull request process
 
-### Code Standards
+### Quick Contribution Guide
 
-- Follow PSR-12 coding standards for PHP
-- Follow Airbnb style guide for TypeScript/React
-- Write unit tests for new features
-- Update documentation as needed
+```bash
+# Fork and clone the repository
+git clone https://github.com/YOUR_USERNAME/geo-ops-platform.git
+
+# Create feature branch
+git checkout -b feature/your-feature
+
+# Make changes and commit
+git commit -m "feat: add your feature"
+
+# Push and create PR
+git push origin feature/your-feature
+```
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 👥 Authors
-
-- **Development Team** - [kasunvimarshana](https://github.com/kasunvimarshana)
-
----
-
-## 🙏 Acknowledgments
-
-- Laravel Community
-- React Native & Expo Teams
-- Open Source Contributors
-- Agricultural sector stakeholders in Sri Lanka
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ---
 
 ## 📞 Support
 
-For support and inquiries:
-
 - **Email**: support@geo-ops.lk
-- **Issues**: [GitHub Issues](https://github.com/kasunvimarshana/geo-ops-platform/issues)
-- **Documentation**: [docs/](docs/)
+- **Issues**: GitHub Issues
+- **Documentation**: See docs/ folder
 
 ---
 
-**Built with ❤️ for the agricultural community in Sri Lanka and beyond.**
+## 🙏 Acknowledgments
+
+Built for farmers and agricultural service providers in Sri Lanka 🇱🇰
+
+---
+
+**🚀 Ready to revolutionize agricultural field services!**

@@ -1,136 +1,65 @@
-# Contributing to GPS Field Management Platform
+# Contribution Guidelines for GeoOps Platform
 
-Thank you for your interest in contributing to the GPS Field Management Platform! This document provides guidelines for contributing to the project.
+Thank you for your interest in contributing to the GeoOps Platform! We appreciate your help in making this project better. Please follow the guidelines below to ensure a smooth contribution process.
 
-## 🌟 How to Contribute
+## How to Contribute
 
-### Reporting Bugs
+1. **Fork the Repository**: Start by forking the repository to your own GitHub account.
 
-- Check if the bug has already been reported in [Issues](https://github.com/kasunvimarshana/geo-ops-platform/issues)
-- Use the bug report template
-- Include detailed steps to reproduce
-- Provide system information (OS, PHP version, Node version, etc.)
+2. **Clone Your Fork**: Clone your forked repository to your local machine.
 
-### Suggesting Features
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/geo-ops-platform.git
+   ```
 
-- Check existing feature requests
-- Clearly describe the feature and use case
-- Explain why it would be beneficial
-- Consider implementation complexity
+3. **Create a Branch**: Create a new branch for your feature or bug fix.
 
-### Pull Requests
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Make your changes
-4. Write/update tests
-5. Update documentation
-6. Commit with clear messages (`git commit -m 'Add AmazingFeature'`)
-7. Push to your fork (`git push origin feature/AmazingFeature`)
-8. Open a Pull Request
+4. **Make Changes**: Implement your changes and ensure that your code adheres to the project's coding standards.
 
-## 📝 Code Standards
+5. **Run Tests**: Before submitting your changes, run the tests to ensure everything is working correctly.
 
-### Backend (PHP/Laravel)
+   ```bash
+   # For backend
+   cd backend
+   php artisan test
 
-- Follow PSR-12 coding standards
-- Use type hints for all parameters and return types
-- Write PHPDoc blocks for all methods
-- Keep controllers thin (business logic in services)
-- Use repository pattern for data access
-- Write unit tests for services
-- Run `composer pint` before committing
+   # For mobile
+   cd mobile
+   npm test
+   ```
 
-### Mobile (TypeScript/React Native)
+6. **Commit Your Changes**: Commit your changes with a clear and concise commit message.
 
-- Use TypeScript strict mode
-- Follow Airbnb JavaScript/React style guide
-- Use functional components with hooks
-- Keep components small and focused
-- Write meaningful variable names
-- Add PropTypes or TypeScript interfaces
-- Run `npm run lint` before committing
+   ```bash
+   git commit -m "feat: add your feature description"
+   ```
 
-### General
+7. **Push to Your Fork**: Push your changes to your forked repository.
 
-- Write clear, concise commit messages
-- One feature/fix per pull request
-- Update documentation as needed
-- Add tests for new features
-- Ensure all tests pass
-- Keep PRs reasonably sized
+   ```bash
+   git push origin feature/your-feature-name
+   ```
 
-## 🧪 Testing
+8. **Create a Pull Request**: Go to the original repository and create a pull request from your branch. Provide a detailed description of your changes and why they should be merged.
 
-### Backend Tests
+## Coding Standards
 
-```bash
-cd backend
-php artisan test
-```
+- **PHP**: Follow PSR-12 coding standards for PHP.
+- **TypeScript**: Follow Airbnb JavaScript style guide for TypeScript.
+- **Documentation**: Ensure that your code is well-documented and includes comments where necessary.
 
-### Mobile Tests
+## Issues and Feature Requests
 
-```bash
-cd mobile
-npm test
-```
+If you encounter any issues or have suggestions for new features, please open an issue in the GitHub repository. Provide as much detail as possible to help us understand the problem or suggestion.
 
-## 📚 Documentation
+## License
 
-- Update README.md if adding major features
-- Update API_DOCUMENTATION.md for API changes
-- Add inline comments for complex logic
-- Update CHANGELOG.md
+By contributing to this project, you agree that your contributions will be licensed under the MIT License.
 
-## 🔄 Development Workflow
+## Acknowledgments
 
-1. **Setup**: Follow QUICK_START.md
-2. **Branch**: Create from `main` or `develop`
-3. **Code**: Make your changes
-4. **Test**: Run all tests
-5. **Document**: Update docs
-6. **Commit**: Use clear messages
-7. **Push**: Push to your fork
-8. **PR**: Open a pull request
-
-## ✅ Pull Request Checklist
-
-- [ ] Code follows project standards
-- [ ] All tests pass
-- [ ] New tests added for new features
-- [ ] Documentation updated
-- [ ] Commit messages are clear
-- [ ] No merge conflicts
-- [ ] PR description explains changes
-
-## 🏗️ Project Structure
-
-```
-geo-ops-platform/
-├── backend/        # Laravel API
-├── mobile/         # React Native App
-├── docs/           # Documentation
-└── README.md       # Project overview
-```
-
-## 🤝 Code Review Process
-
-1. Maintainers review PRs
-2. Feedback provided via comments
-3. Address requested changes
-4. Approved PRs are merged
-5. Celebrate! 🎉
-
-## 📧 Contact
-
-- GitHub Issues: [Report Issues](https://github.com/kasunvimarshana/geo-ops-platform/issues)
-- Discussions: [GitHub Discussions](https://github.com/kasunvimarshana/geo-ops-platform/discussions)
-
-## 📄 License
-
-By contributing, you agree that your contributions will be licensed under the MIT License.
-
----
-
-**Thank you for contributing to GPS Field Management Platform!** 🚀
+Thank you for helping us improve the GeoOps Platform! Your contributions make a difference.

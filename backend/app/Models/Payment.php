@@ -1,56 +1,31 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Payment extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-        'organization_id',
-        'invoice_id',
         'amount',
-        'method',
-        'reference',
-        'transaction_id',
-        'notes',
-        'paid_at',
-        'received_by',
+        'payment_method',
+        'status',
+        'invoice_id',
+        'user_id',
+        'created_at',
+        'updated_at',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'amount' => 'decimal:2',
-            'paid_at' => 'datetime',
-        ];
-    }
-
-    public function organization(): BelongsTo
-    {
-        return $this->belongsTo(Organization::class);
-    }
-
-    public function invoice(): BelongsTo
+    public function invoice()
     {
         return $this->belongsTo(Invoice::class);
     }
 
-    public function receiver(): BelongsTo
+    public function user()
     {
-        return $this->belongsTo(User::class, 'received_by');
-    }
-
-    public function scopeOrganization($query, int $organizationId)
-    {
-        return $query->where('organization_id', $organizationId);
-    }
-
-    public function scopeMethod($query, string $method)
-    {
-        return $query->where('method', $method);
+        return $this->belongsTo(User::class);
     }
 }

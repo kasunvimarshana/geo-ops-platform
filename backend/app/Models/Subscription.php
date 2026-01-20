@@ -1,57 +1,43 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Subscription extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'organization_id',
-        'package_id',
+        'tier',
         'start_date',
         'end_date',
         'status',
-        'auto_renew',
-        'payment_method',
-        'usage_stats',
+        'usage_limit',
+        'usage_count',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'start_date' => 'date',
-            'end_date' => 'date',
-            'auto_renew' => 'boolean',
-            'usage_stats' => 'array',
-        ];
-    }
-
-    public function organization(): BelongsTo
+    public function organization()
     {
         return $this->belongsTo(Organization::class);
     }
 
-    public function package(): BelongsTo
+    public function isActive()
     {
-        return $this->belongsTo(Package::class);
+        return $this->status === 'active' && $this->end_date > now();
     }
 
-    public function scopeActive($query)
+    public function isExpired()
     {
-        return $query->where('status', 'active');
+        return $this->end_date <= now();
     }
 
-    public function scopeStatus($query, string $status)
+    public function renew($newEndDate)
     {
-        return $query->where('status', $status);
-    }
-
-    public function scopeOrganization($query, int $organizationId)
-    {
-        return $query->where('organization_id', $organizationId);
+        $this->end_date = $newEndDate;
+        $this->status = 'active';
+        $this->save();
     }
 }

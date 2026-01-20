@@ -1,81 +1,69 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Organization extends Model
 {
-    use SoftDeletes;
+    use HasFactory;
 
     protected $fillable = [
         'name',
-        'email',
-        'phone',
         'address',
-        'logo_url',
-        'settings',
-        'status',
+        'contact_number',
+        'email',
+        'subscription_tier',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'settings' => 'array',
-        ];
-    }
-
-    public function users(): HasMany
+    public function users()
     {
         return $this->hasMany(User::class);
     }
 
-    public function subscriptions(): HasMany
+    public function customers()
     {
-        return $this->hasMany(Subscription::class);
+        return $this->hasMany(Customer::class);
     }
 
-    public function landPlots(): HasMany
+    public function lands()
     {
-        return $this->hasMany(LandPlot::class);
+        return $this->hasMany(Land::class);
     }
 
-    public function fieldJobs(): HasMany
+    public function jobs()
     {
-        return $this->hasMany(FieldJob::class);
+        return $this->hasMany(Job::class);
     }
 
-    public function gpsTracking(): HasMany
+    public function machines()
     {
-        return $this->hasMany(GpsTracking::class);
+        return $this->hasMany(Machine::class);
     }
 
-    public function invoices(): HasMany
+    public function drivers()
+    {
+        return $this->hasMany(Driver::class);
+    }
+
+    public function invoices()
     {
         return $this->hasMany(Invoice::class);
     }
 
-    public function payments(): HasMany
+    public function payments()
     {
         return $this->hasMany(Payment::class);
     }
 
-    public function expenses(): HasMany
+    public function expenses()
     {
         return $this->hasMany(Expense::class);
     }
 
-    public function scopeActive($query)
+    public function subscriptions()
     {
-        return $query->where('status', 'active');
-    }
-
-    public function scopeStatus($query, string $status)
-    {
-        return $query->where('status', $status);
+        return $this->hasMany(Subscription::class);
     }
 }

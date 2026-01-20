@@ -1,0 +1,66 @@
+{
+  "dashboard": {
+    "welcome": "Welcome",
+    "key_metrics": "Key Metrics",
+    "total_jobs": "Total Jobs",
+    "completed_jobs": "Completed Jobs",
+    "pending_jobs": "Pending Jobs",
+    "total_customers": "Total Customers",
+    "total_revenue": "Total Revenue"
+  },
+  "auth": {
+    "login": {
+      "title": "Login",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Login",
+      "forgot_password": "Forgot Password?",
+      "no_account": "Don't have an account? Register"
+    },
+    "register": {
+      "title": "Register",
+      "name": "Name",
+      "email": "Email",
+      "password": "Password",
+      "confirm_password": "Confirm Password",
+      "submit": "Register",
+      "have_account": "Already have an account? Login"
+    }
+  },
+  "jobs": {
+    "title": "Jobs",
+    "create": "Create Job",
+    "view": "View Job",
+    "status": "Status",
+    "in_progress": "In Progress",
+    "completed": "Completed",
+    "pending": "Pending"
+  },
+  "lands": {
+    "title": "Lands",
+    "measure": "Measure Land",
+    "view": "View Land",
+    "area": "Area",
+    "coordinates": "Coordinates"
+  },
+  "invoices": {
+    "title": "Invoices",
+    "create": "Create Invoice",
+    "view": "View Invoice",
+    "status": "Status",
+    "paid": "Paid",
+    "unpaid": "Unpaid"
+  },
+  "payments": {
+    "title": "Payments",
+    "make_payment": "Make Payment",
+    "payment_method": "Payment Method",
+    "amount": "Amount",
+    "submit": "Submit Payment"
+  },
+  "errors": {
+    "required": "This field is required",
+    "invalid_email": "Invalid email address",
+    "password_mismatch": "Passwords do not match"
+  }
+}

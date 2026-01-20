@@ -1,225 +1,83 @@
-# GeoOps Platform - Mobile App
+# Mobile Application for GeoOps Platform
 
-Production-ready React Native Expo mobile application for GPS field management with offline-first capabilities.
+Welcome to the GeoOps Platform mobile application! This application is designed to provide farmers and agricultural service providers with a comprehensive tool for managing field services, land measurements, and job tracking.
 
-## Features
+## Overview
 
-✅ **Offline-First Architecture**
+The mobile app is built using TypeScript and Expo, ensuring a smooth and efficient user experience. It integrates seamlessly with the Laravel backend API to provide real-time data and functionalities.
 
-- Local SQLite database for data persistence
-- MMKV storage for secure token management
-- Background sync when online
-- Conflict resolution with last-write-wins strategy
+## Key Features
 
-✅ **GPS Measurement**
-
-- Real-time location tracking
-- Walk-around polygon drawing
-- Point-by-point measurement
-- Area calculation (sq.m and acres)
-- Perimeter calculation
-
-✅ **Job Management**
-
-- Create, edit, and track field jobs
-- Status management (pending, in progress, completed, cancelled)
-- Customer information
-- Offline job creation with auto-sync
-
-✅ **Authentication**
-
-- JWT token-based authentication
-- Secure token storage
-- Auto-login on app start
-- Token refresh mechanism
-
-✅ **Bilingual Support**
-
-- English (en)
-- Sinhala (සිංහල - si)
-- Easy language switching
-
-✅ **Type-Safe Development**
-
-- Full TypeScript coverage
-- Strict mode enabled
-- Comprehensive type definitions
-
-## Tech Stack
-
-- **Framework**: React Native with Expo
-- **Language**: TypeScript
-- **Navigation**: React Navigation (Stack & Bottom Tabs)
-- **State Management**: Zustand
-- **API Client**: Axios
-- **Maps**: React Native Maps
-- **Location**: Expo Location
-- **Offline Storage**: SQLite + MMKV
-- **Forms**: React Hook Form
-- **i18n**: i18next
-- **UI Components**: React Native Paper
+- **User Authentication**: Secure login and registration for users.
+- **Job Management**: Create, track, and manage jobs with real-time updates.
+- **Land Measurement**: Measure land using GPS and manage land records.
+- **Offline Capabilities**: Functionality available even without internet access.
+- **Bilingual Support**: Available in Sinhala and English.
 
 ## Project Structure
 
-```
-src/
-├── features/              # Feature-based modules
-│   ├── auth/             # Authentication
-│   ├── gps/              # GPS measurement
-│   ├── jobs/             # Job management
-│   ├── invoices/         # Invoice management
-│   └── tracking/         # Real-time tracking
-├── shared/               # Shared resources
-│   ├── components/       # Reusable components
-│   ├── services/         # API, storage, sync services
-│   ├── hooks/            # Custom hooks
-│   ├── utils/            # Utility functions
-│   ├── types/            # Type definitions
-│   └── constants/        # App constants
-├── navigation/           # Navigation configuration
-├── store/               # Zustand stores
-├── locales/             # i18n translations
-└── theme/               # Theme configuration
-```
+The mobile application is organized into several key directories:
 
-## Installation
+- **app/**: Contains the main application components, including authentication and tab navigation.
+- **assets/**: Stores images, fonts, and localization files.
+- **src/**: Contains the core logic, including API calls, components, services, and state management.
+- **hooks/**: Custom hooks for managing state and side effects.
+- **navigation/**: Defines the navigation structure of the app.
+- **store/**: Zustand stores for managing global state.
 
-```bash
-# Install dependencies
-npm install
+## Getting Started
 
-# Start development server
-npm start
+To get started with the mobile application, follow these steps:
 
-# Run on Android
-npm run android
+1. **Clone the Repository**:
 
-# Run on iOS
-npm run ios
-```
+   ```bash
+   git clone https://github.com/kasunvimarshana/geo-ops-platform.git
+   cd geo-ops-platform/mobile
+   ```
 
-## Environment Configuration
+2. **Install Dependencies**:
 
-Create a `.env` file in the mobile directory:
+   ```bash
+   npm install
+   ```
 
-```env
-EXPO_PUBLIC_API_URL=http://your-backend-url:8000/api
-```
+3. **Run the Application**:
 
-## Key Services
+   ```bash
+   npm start
+   ```
 
-### API Client
+4. **Build for Production**:
+   - For Android:
+     ```bash
+     eas build --platform android --profile production
+     ```
+   - For iOS:
+     ```bash
+     eas build --platform ios --profile production
+     ```
 
-- Automatic token injection
-- Token refresh on 401
-- Error handling
-- Retry logic
+## Documentation
 
-### SQLite Service
+For detailed documentation, refer to the following files:
 
-- Local database for jobs and plots
-- Sync queue management
-- Offline data persistence
+- [API Specification](../../API_SPECIFICATION.md)
+- [Setup Guide](../../SETUP_GUIDE.md)
+- [Deployment Guide](../../DEPLOYMENT_GUIDE.md)
 
-### Location Service
+## Contributing
 
-- High-accuracy GPS tracking
-- Area and perimeter calculations
-- Distance calculations
-- Walk-around mode support
-
-### Sync Service
-
-- Background auto-sync every 5 minutes
-- Network status monitoring
-- Batch processing
-- Retry mechanism with exponential backoff
-
-## Offline Capabilities
-
-1. **Job Management**: Create and edit jobs offline
-2. **GPS Measurements**: Record measurements without connection
-3. **Sync Queue**: Operations queued and synced when online
-4. **Local Storage**: All data persisted locally
-5. **Conflict Resolution**: Server-wins strategy for conflicts
-
-## State Management
-
-Using Zustand for global state:
-
-- **authStore**: User authentication state
-- **jobsStore**: Job management state
-- **plotsStore**: GPS measurement state
-- **syncStore**: Sync status and network state
-
-## Best Practices Implemented
-
-- Feature-based folder structure
-- Separation of concerns
-- Type-safe API calls
-- Error boundaries
-- Loading states
-- Optimistic updates
-- Proper memory cleanup
-- Battery-optimized GPS tracking
-
-## Performance Optimizations
-
-- Lazy loading of screens
-- Memoized calculations
-- Debounced inputs
-- Efficient re-renders with Zustand
-- Optimized map rendering
-
-## Security
-
-- Secure token storage with MMKV
-- No sensitive data in logs
-- API token in headers only
-- SQLite encryption ready
-
-## Testing
-
-```bash
-# Run linter
-npm run lint
-```
-
-## Building for Production
-
-```bash
-# Build Android APK
-eas build --platform android
-
-# Build iOS
-eas build --platform ios
-```
-
-## Troubleshooting
-
-### Location permissions not working
-
-Make sure to add location permissions in `app.json`
-
-### Database initialization fails
-
-Check SQLite initialization in AppNavigator
-
-### Maps not rendering
-
-Verify Google Maps API key configuration
-
-## Next Steps
-
-1. Add unit tests with Jest
-2. Add E2E tests with Detox
-3. Implement push notifications
-4. Add photo capture for jobs
-5. Implement invoice PDF preview
-6. Add real-time driver tracking
-7. Implement biometric authentication
-8. Add analytics tracking
+We welcome contributions! Please refer to the [CONTRIBUTING.md](../../CONTRIBUTING.md) file for guidelines on how to contribute to the project.
 
 ## License
 
-Proprietary - GeoOps Platform
+This project is licensed under the MIT License. See the [LICENSE](../../LICENSE) file for details.
+
+## Support
+
+For support, please contact us at support@geo-ops.lk or open an issue in the GitHub repository.
+
+---
+
+Thank you for using the GeoOps Platform mobile application! We hope it helps you manage your agricultural services efficiently.

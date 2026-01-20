@@ -1,70 +1,50 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Invoice extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-        'organization_id',
-        'field_job_id',
-        'invoice_number',
-        'customer_name',
-        'customer_email',
-        'customer_phone',
-        'subtotal',
-        'tax_amount',
-        'discount_amount',
-        'total_amount',
-        'currency',
+        'customer_id',
+        'amount',
         'status',
-        'issued_at',
         'due_date',
-        'paid_at',
-        'pdf_url',
-        'notes',
+        'created_at',
+        'updated_at',
     ];
 
-    protected function casts(): array
+    public function customer()
     {
-        return [
-            'subtotal' => 'decimal:2',
-            'tax_amount' => 'decimal:2',
-            'discount_amount' => 'decimal:2',
-            'total_amount' => 'decimal:2',
-            'issued_at' => 'date',
-            'due_date' => 'date',
-            'paid_at' => 'datetime',
-        ];
+        return $this->belongsTo(Customer::class);
     }
 
-    public function organization(): BelongsTo
-    {
-        return $this->belongsTo(Organization::class);
-    }
-
-    public function fieldJob(): BelongsTo
-    {
-        return $this->belongsTo(FieldJob::class);
-    }
-
-    public function payments(): HasMany
+    public function payments()
     {
         return $this->hasMany(Payment::class);
     }
 
-    public function scopeOrganization($query, int $organizationId)
+    public function getStatusAttribute($value)
     {
-        return $query->where('organization_id', $organizationId);
+        return ucfirst($value);
     }
 
-    public function scopeStatus($query, string $status)
+    public function scopePaid($query)
     {
-        return $query->where('status', $status);
+        return $query->where('status', 'paid');
+    }
+
+    public function scopeUnpaid($query)
+    {
+        return $query->where('status', 'unpaid');
+    }
+
+    public function scopeOverdue($query)
+    {
+        return $query->where('due_date', '<', now())->where('status', '!=', 'paid');
     }
 }

@@ -1,18 +1,23 @@
-#!/usr/bin/env php
 <?php
 
-use Illuminate\Foundation\Application;
-use Symfony\Component\Console\Input\ArgvInput;
+use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
-define('LARAVEL_START', microtime(true));
+class Kernel extends ConsoleKernel
+{
+    protected $commands = [
+        // Register your console commands here
+    ];
 
-// Register the Composer autoloader...
-require __DIR__.'/vendor/autoload.php';
+    protected function schedule(Schedule $schedule)
+    {
+        // Define your command schedule here
+    }
 
-// Bootstrap Laravel and handle the command...
-/** @var Application $app */
-$app = require_once __DIR__.'/bootstrap/app.php';
+    protected function commands()
+    {
+        $this->load(__DIR__.'/../Commands');
 
-$status = $app->handleCommand(new ArgvInput);
-
-exit($status);
+        // Load commands from the specified directory
+        require base_path('routes/console.php');
+    }
+}

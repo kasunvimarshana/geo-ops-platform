@@ -1,43 +1,45 @@
 <?php
 
-declare(strict_types=1);
-
-use App\Presentation\Controllers\Api\AuthController;
-use App\Presentation\Controllers\Api\FieldJobController;
-use App\Presentation\Controllers\Api\InvoiceController;
-use App\Presentation\Controllers\Api\LandPlotController;
 use Illuminate\Support\Facades\Route;
 
-// Public routes
+// Authentication Routes
 Route::prefix('auth')->group(function () {
-    Route::post('register', [AuthController::class, 'register']);
-    Route::post('login', [AuthController::class, 'login']);
+    Route::post('register', [App\Http\Controllers\Api\V1\AuthController::class, 'register']);
+    Route::post('login', [App\Http\Controllers\Api\V1\AuthController::class, 'login']);
+    Route::post('logout', [App\Http\Controllers\Api\V1\AuthController::class, 'logout']);
+    Route::get('me', [App\Http\Controllers\Api\V1\AuthController::class, 'me']);
 });
 
-// Protected routes
-Route::middleware('auth:api')->group(function () {
-    // Auth routes
-    Route::prefix('auth')->group(function () {
-        Route::post('refresh', [AuthController::class, 'refresh']);
-        Route::post('logout', [AuthController::class, 'logout']);
-        Route::get('me', [AuthController::class, 'me']);
-    });
+// Customer Routes
+Route::apiResource('customers', App\Http\Controllers\Api\V1\CustomerController::class);
 
-    // Land Plots
-    Route::apiResource('land-plots', LandPlotController::class);
+// Land Routes
+Route::apiResource('lands', App\Http\Controllers\Api\V1\LandController::class);
 
-    // Field Jobs
-    Route::prefix('field-jobs')->group(function () {
-        Route::post('{id}/start', [FieldJobController::class, 'start']);
-        Route::post('{id}/complete', [FieldJobController::class, 'complete']);
-        Route::post('{id}/cancel', [FieldJobController::class, 'cancel']);
-    });
-    Route::apiResource('field-jobs', FieldJobController::class);
+// Job Routes
+Route::apiResource('jobs', App\Http\Controllers\Api\V1\JobController::class);
+Route::post('jobs/{id}/start', [App\Http\Controllers\Api\V1\JobController::class, 'start']);
+Route::post('jobs/{id}/complete', [App\Http\Controllers\Api\V1\JobController::class, 'complete']);
+Route::post('jobs/{id}/tracking', [App\Http\Controllers\Api\V1\JobController::class, 'tracking']);
 
-    // Invoices
-    Route::prefix('invoices')->group(function () {
-        Route::get('{id}/generate-pdf', [InvoiceController::class, 'generatePdf']);
-        Route::get('{id}/download-pdf', [InvoiceController::class, 'downloadPdf']);
-    });
-    Route::apiResource('invoices', InvoiceController::class);
-});
+// Invoice Routes
+Route::apiResource('invoices', App\Http\Controllers\Api\V1\InvoiceController::class);
+Route::get('invoices/{id}/pdf', [App\Http\Controllers\Api\V1\InvoiceController::class, 'generatePDF']);
+
+// Payment Routes
+Route::apiResource('payments', App\Http\Controllers\Api\V1\PaymentController::class);
+
+// Expense Routes
+Route::apiResource('expenses', App\Http\Controllers\Api\V1\ExpenseController::class);
+
+// Driver Routes
+Route::apiResource('drivers', App\Http\Controllers\Api\V1\DriverController::class);
+
+// Organization Routes
+Route::apiResource('organizations', App\Http\Controllers\Api\V1\OrganizationController::class);
+
+// Subscription Routes
+Route::apiResource('subscriptions', App\Http\Controllers\Api\V1\SubscriptionController::class);
+
+// Dashboard Routes
+Route::get('dashboard', [App\Http\Controllers\Api\V1\DashboardController::class, 'index']);
