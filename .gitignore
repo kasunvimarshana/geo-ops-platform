@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+vendor/
+bower_components/
+
+# Build outputs
+dist/
+build/
+*.log
+*.tmp
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Laravel specific
+backend/storage/*.key
+backend/storage/logs/*.log
+backend/storage/framework/cache/*
+backend/storage/framework/sessions/*
+backend/storage/framework/testing/*
+backend/storage/framework/views/*
+backend/bootstrap/cache/*
+
+# React Native / Expo
+mobile/.expo/
+mobile/.expo-shared/
+mobile/web-build/
+mobile/dist/
+
+# Testing
+coverage/
+.phpunit.result.cache
+
+# Generated files
+*.pdf
+*.sqlite
+*.db
