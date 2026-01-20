@@ -1,629 +1,687 @@
-# Database Schema - GeoOps Platform
+# Database Schema & ERD
+
+## GPS Field Management Platform Database Design
+
+**Version:** 1.0.0  
+**Database:** MySQL 8.0+ / PostgreSQL 15+  
+**Spatial Support:** Required (ST\_\* functions)
+
+---
 
 ## Entity Relationship Diagram (ERD)
 
 ```
-┌─────────────────────┐
-│   organizations     │
-├─────────────────────┤
-│ id (PK)             │
-│ name                │
-│ owner_id (FK)       │
-│ subscription_pkg    │
-│ subscription_exp_at │
-│ settings (JSON)     │
-│ created_at          │
-│ updated_at          │
-└─────────┬───────────┘
-          │ 1
-          │
-          │ N
-┌─────────▼───────────┐       ┌──────────────────────┐
-│       users         │       │    subscriptions     │
-├─────────────────────┤       ├──────────────────────┤
-│ id (PK)             │       │ id (PK)              │
-│ organization_id (FK)│◄──────┤ organization_id (FK) │
-│ name                │       │ package              │
-│ email (unique)      │       │ amount               │
-│ password            │       │ starts_at            │
-│ phone               │       │ expires_at           │
-│ role (enum)         │       │ status               │
-│ email_verified_at   │       │ created_at           │
-│ created_at          │       │ updated_at           │
-│ updated_at          │       └──────────────────────┘
-│ deleted_at          │
-└─────────┬───────────┘
-          │ 1
-          │
-          │ 1
-┌─────────▼───────────┐
-│      drivers        │
-├─────────────────────┤
-│ id (PK)             │
-│ user_id (FK)        │
-│ organization_id (FK)│
-│ license_number      │
-│ vehicle_info (JSON) │
-│ status              │
-│ created_at          │
-│ updated_at          │
-│ deleted_at          │
-└─────────┬───────────┘
-          │ 1
-          │
-          │ N
-┌─────────▼───────────┐       ┌──────────────────────┐
-│   tracking_logs     │       │   land_measurements  │
-├─────────────────────┤       ├──────────────────────┤
-│ id (PK)             │       │ id (PK)              │
-│ driver_id (FK)      │       │ organization_id (FK) │
-│ job_id (FK)         │       │ name                 │
-│ latitude            │       │ coordinates (POLYGON)│
-│ longitude           │       │ area_acres           │
-│ accuracy            │       │ area_hectares        │
-│ speed               │       │ measured_by (FK)     │
-│ heading             │       │ measured_at          │
-│ recorded_at         │       │ created_at           │
-└─────────────────────┘       │ updated_at           │
-                              │ deleted_at           │
-                              └──────────┬───────────┘
-                                         │ 1
-                                         │
-                                         │ N
-                              ┌──────────▼───────────┐
-                              │        jobs          │
-                              ├──────────────────────┤
-                              │ id (PK)              │
-                              │ organization_id (FK) │
-                              │ customer_id (FK)     │
-                              │ land_measurement_id  │
-                              │ driver_id (FK)       │
-                              │ machine_id (FK)      │
-                              │ status (enum)        │
-                              │ scheduled_at         │
-                              │ started_at           │
-                              │ completed_at         │
-                              │ notes (TEXT)         │
-                              │ created_by (FK)      │
-                              │ created_at           │
-                              │ updated_at           │
-                              │ deleted_at           │
-                              └──────────┬───────────┘
-                                         │ 1
-                                         │
-                                         │ 1
-                              ┌──────────▼───────────┐
-                              │      invoices        │
-                              ├──────────────────────┤
-                              │ id (PK)              │
-                              │ organization_id (FK) │
-                              │ job_id (FK)          │
-                              │ customer_id (FK)     │
-                              │ invoice_number       │
-                              │ amount               │
-                              │ tax                  │
-                              │ discount             │
-                              │ total                │
-                              │ status (enum)        │
-                              │ pdf_path             │
-                              │ issued_at            │
-                              │ due_at               │
-                              │ paid_at              │
-                              │ created_at           │
-                              │ updated_at           │
-                              └──────────┬───────────┘
-                                         │ 1
-                                         │
-                                         │ N
-                              ┌──────────▼───────────┐
-                              │      payments        │
-                              ├──────────────────────┤
-                              │ id (PK)              │
-                              │ organization_id (FK) │
-                              │ invoice_id (FK)      │
-                              │ customer_id (FK)     │
-                              │ amount               │
-                              │ payment_method       │
-                              │ reference_number     │
-                              │ payment_date         │
-                              │ created_by (FK)      │
-                              │ created_at           │
-                              │ updated_at           │
-                              └──────────────────────┘
-
-┌─────────────────────┐       ┌──────────────────────┐
-│      customers      │       │      machines        │
-├─────────────────────┤       ├──────────────────────┤
-│ id (PK)             │       │ id (PK)              │
-│ organization_id (FK)│       │ organization_id (FK) │
-│ name                │       │ name                 │
-│ phone               │       │ type                 │
-│ email               │       │ model                │
-│ address             │       │ registration_number  │
-│ balance             │       │ status               │
-│ created_at          │       │ created_at           │
-│ updated_at          │       │ updated_at           │
-│ deleted_at          │       │ deleted_at           │
-└─────────────────────┘       └──────────────────────┘
-          │                              │
-          │ 1                            │ 1
-          │                              │
-          │ N                            │ N
-┌─────────▼───────────┐       ┌──────────▼───────────┐
-│      expenses       │       │    expense_logs      │
-├─────────────────────┤       ├──────────────────────┤
-│ id (PK)             │       │ id (PK)              │
-│ organization_id (FK)│       │ machine_id (FK)      │
-│ job_id (FK)         │       │ expense_type         │
-│ driver_id (FK)      │       │ description          │
-│ machine_id (FK)     │       │ amount               │
-│ category (enum)     │       │ logged_at            │
-│ amount              │       │ created_at           │
-│ description         │       └──────────────────────┘
-│ receipt_path        │
-│ expense_date        │
-│ created_by (FK)     │
-│ created_at          │
-│ updated_at          │
-│ deleted_at          │
-└─────────────────────┘
-
-┌─────────────────────┐
-│   password_resets   │
-├─────────────────────┤
-│ email               │
-│ token               │
-│ created_at          │
-└─────────────────────┘
-
-┌─────────────────────┐
-│   audit_logs        │
-├─────────────────────┤
-│ id (PK)             │
-│ user_id (FK)        │
-│ organization_id (FK)│
-│ action              │
-│ entity_type         │
-│ entity_id           │
-│ old_values (JSON)   │
-│ new_values (JSON)   │
-│ ip_address          │
-│ user_agent          │
-│ created_at          │
-└─────────────────────┘
+┌─────────────────┐
+│  organizations  │
+├─────────────────┤
+│ id              │
+│ name            │
+│ email           │
+│ phone           │
+│ address         │
+│ created_at      │
+│ updated_at      │
+└─────────────────┘
+        │
+        │ 1:N
+        │
+        ▼
+┌─────────────────┐         ┌─────────────────┐
+│     users       │         │  subscriptions  │
+├─────────────────┤         ├─────────────────┤
+│ id              │         │ id              │
+│ organization_id │◀────────│ organization_id │
+│ name            │         │ package_id      │
+│ email           │         │ start_date      │
+│ password        │         │ end_date        │
+│ phone           │         │ status          │
+│ role            │         │ created_at      │
+│ created_at      │         └─────────────────┘
+│ updated_at      │                 │
+└─────────────────┘                 │
+        │                           │
+        │ 1:N                       │ N:1
+        │                           │
+        ▼                           ▼
+┌─────────────────┐         ┌─────────────────┐
+│   land_plots    │         │    packages     │
+├─────────────────┤         ├─────────────────┤
+│ id              │         │ id              │
+│ organization_id │         │ name            │
+│ user_id         │         │ price           │
+│ name            │         │ features        │
+│ area_acres      │         │ limits          │
+│ area_hectares   │         │ created_at      │
+│ coordinates     │         └─────────────────┘
+│ created_at      │
+│ updated_at      │
+└─────────────────┘
+        │
+        │ 1:N
+        │
+        ▼
+┌─────────────────┐
+│      jobs       │
+├─────────────────┤
+│ id              │
+│ organization_id │
+│ land_plot_id    │
+│ driver_id       │
+│ customer_name   │
+│ job_type        │
+│ status          │
+│ start_date      │
+│ end_date        │
+│ created_at      │
+│ updated_at      │
+└─────────────────┘
+        │
+        │ 1:N
+        │
+        ├───────────────────┬───────────────────┐
+        │                   │                   │
+        ▼                   ▼                   ▼
+┌─────────────┐   ┌─────────────┐   ┌─────────────┐
+│  invoices   │   │  expenses   │   │gps_tracking │
+├─────────────┤   ├─────────────┤   ├─────────────┤
+│ id          │   │ id          │   │ id          │
+│ job_id      │   │ job_id      │   │ job_id      │
+│ amount      │   │ category    │   │ user_id     │
+│ pdf_url     │   │ amount      │   │ latitude    │
+│ status      │   │ description │   │ longitude   │
+│ created_at  │   │ receipt_url │   │ accuracy    │
+└─────────────┘   │ created_at  │   │ timestamp   │
+        │         └─────────────┘   │ created_at  │
+        │                           └─────────────┘
+        │ 1:N
+        │
+        ▼
+┌─────────────┐
+│  payments   │
+├─────────────┤
+│ id          │
+│ invoice_id  │
+│ amount      │
+│ method      │
+│ reference   │
+│ paid_at     │
+│ created_at  │
+└─────────────┘
 ```
+
+---
 
 ## Table Definitions
 
-### organizations
+### 1. organizations
 
-Stores organization/company information.
+Stores organization/company information for multi-tenancy.
 
 ```sql
 CREATE TABLE organizations (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,
-    owner_id BIGINT UNSIGNED NOT NULL,
-    subscription_package ENUM('free', 'basic', 'pro') DEFAULT 'free',
-    subscription_expires_at TIMESTAMP NULL,
-    settings JSON NULL,
+    email VARCHAR(255) UNIQUE,
+    phone VARCHAR(20),
+    address TEXT,
+    logo_url VARCHAR(500),
+    settings JSON,
+    status ENUM('active', 'suspended', 'inactive') DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-    INDEX idx_owner_id (owner_id),
-    INDEX idx_subscription_package (subscription_package)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    deleted_at TIMESTAMP NULL,
+    INDEX idx_status (status),
+    INDEX idx_created_at (created_at)
+);
 ```
 
-**settings JSON structure:**
+**Columns:**
 
-```json
-{
-  "currency": "LKR",
-  "timezone": "Asia/Colombo",
-  "default_rate_per_acre": 5000,
-  "tax_percentage": 0,
-  "invoice_prefix": "INV",
-  "locale": "si"
-}
-```
+- `id`: Primary key
+- `name`: Organization name
+- `email`: Contact email
+- `phone`: Contact phone
+- `address`: Physical address
+- `logo_url`: Organization logo
+- `settings`: JSON field for custom settings
+- `status`: Organization status
+- `created_at`: Creation timestamp
+- `updated_at`: Last update timestamp
+- `deleted_at`: Soft delete timestamp
 
-### users
+---
 
-Stores all system users (admin, owners, drivers, brokers, accountants).
+### 2. users
+
+User accounts with role-based access.
 
 ```sql
 CREATE TABLE users (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    organization_id BIGINT UNSIGNED NULL,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    organization_id BIGINT UNSIGNED NOT NULL,
     name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    phone VARCHAR(20),
     password VARCHAR(255) NOT NULL,
-    phone VARCHAR(20) NULL,
     role ENUM('admin', 'owner', 'driver', 'broker', 'accountant') NOT NULL,
+    avatar_url VARCHAR(500),
+    is_active BOOLEAN DEFAULT TRUE,
     email_verified_at TIMESTAMP NULL,
+    remember_token VARCHAR(100),
+    last_login_at TIMESTAMP NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP NULL,
-
-    INDEX idx_organization_id (organization_id),
-    INDEX idx_role (role),
+    FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    INDEX idx_organization (organization_id),
     INDEX idx_email (email),
-    FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    INDEX idx_role (role),
+    INDEX idx_active (is_active)
+);
 ```
 
-### drivers
+**Roles:**
 
-Extended information for users with driver role.
+- `admin`: System administrator
+- `owner`: Land/machine owner
+- `driver`: Equipment operator
+- `broker`: Field agent/broker
+- `accountant`: Financial management
+
+---
+
+### 3. packages
+
+Subscription package definitions.
 
 ```sql
-CREATE TABLE drivers (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT UNSIGNED NOT NULL,
-    organization_id BIGINT UNSIGNED NOT NULL,
-    license_number VARCHAR(50) NULL,
-    vehicle_info JSON NULL,
-    status ENUM('active', 'inactive', 'on_leave') DEFAULT 'active',
+CREATE TABLE packages (
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    slug VARCHAR(100) UNIQUE NOT NULL,
+    description TEXT,
+    price DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    billing_cycle ENUM('monthly', 'yearly', 'lifetime') NOT NULL,
+    features JSON NOT NULL,
+    limits JSON NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    sort_order INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL,
-
-    UNIQUE KEY unique_user_driver (user_id),
-    INDEX idx_organization_id (organization_id),
-    INDEX idx_status (status),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    INDEX idx_slug (slug),
+    INDEX idx_active (is_active)
+);
 ```
 
-**vehicle_info JSON structure:**
+**Features JSON Example:**
 
 ```json
 {
-  "type": "tractor",
-  "make": "Mahindra",
-  "model": "275 DI",
-  "year": 2020,
-  "registration": "ABC-1234"
+  "measurements": 100,
+  "drivers": 5,
+  "exports_per_month": 50,
+  "pdf_generation": true,
+  "advanced_reports": false,
+  "api_access": false
 }
 ```
 
-### land_measurements
+**Limits JSON Example:**
 
-Stores GPS-measured land polygons.
-
-```sql
-CREATE TABLE land_measurements (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    organization_id BIGINT UNSIGNED NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    coordinates POLYGON NOT NULL,
-    area_acres DECIMAL(10, 4) NOT NULL,
-    area_hectares DECIMAL(10, 4) NOT NULL,
-    measured_by BIGINT UNSIGNED NOT NULL,
-    measured_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL,
-
-    INDEX idx_organization_id (organization_id),
-    INDEX idx_measured_by (measured_by),
-    INDEX idx_measured_at (measured_at),
-    SPATIAL INDEX idx_coordinates (coordinates),
-    FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
-    FOREIGN KEY (measured_by) REFERENCES users(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```json
+{
+  "max_measurements_per_month": 100,
+  "max_drivers": 5,
+  "max_storage_mb": 1024,
+  "max_api_calls_per_day": 1000
+}
 ```
 
-### customers
+---
 
-Stores customer/client information.
+### 4. subscriptions
 
-```sql
-CREATE TABLE customers (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    organization_id BIGINT UNSIGNED NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    phone VARCHAR(20) NULL,
-    email VARCHAR(255) NULL,
-    address TEXT NULL,
-    balance DECIMAL(12, 2) DEFAULT 0.00,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL,
-
-    INDEX idx_organization_id (organization_id),
-    INDEX idx_phone (phone),
-    FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-```
-
-### machines
-
-Stores agricultural machinery information.
-
-```sql
-CREATE TABLE machines (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    organization_id BIGINT UNSIGNED NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    type ENUM('tractor', 'harvester', 'plough', 'seeder', 'sprayer', 'other') NOT NULL,
-    model VARCHAR(255) NULL,
-    registration_number VARCHAR(50) NULL,
-    status ENUM('active', 'maintenance', 'inactive') DEFAULT 'active',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL,
-
-    INDEX idx_organization_id (organization_id),
-    INDEX idx_status (status),
-    FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-```
-
-### jobs
-
-Stores field work jobs.
-
-```sql
-CREATE TABLE jobs (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    organization_id BIGINT UNSIGNED NOT NULL,
-    customer_id BIGINT UNSIGNED NOT NULL,
-    land_measurement_id BIGINT UNSIGNED NULL,
-    driver_id BIGINT UNSIGNED NULL,
-    machine_id BIGINT UNSIGNED NULL,
-    status ENUM('pending', 'assigned', 'in_progress', 'completed', 'billed', 'paid') DEFAULT 'pending',
-    scheduled_at TIMESTAMP NULL,
-    started_at TIMESTAMP NULL,
-    completed_at TIMESTAMP NULL,
-    notes TEXT NULL,
-    created_by BIGINT UNSIGNED NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL,
-
-    INDEX idx_organization_id (organization_id),
-    INDEX idx_customer_id (customer_id),
-    INDEX idx_driver_id (driver_id),
-    INDEX idx_machine_id (machine_id),
-    INDEX idx_status (status),
-    INDEX idx_scheduled_at (scheduled_at),
-    FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
-    FOREIGN KEY (customer_id) REFERENCES customers(id),
-    FOREIGN KEY (land_measurement_id) REFERENCES land_measurements(id),
-    FOREIGN KEY (driver_id) REFERENCES drivers(id),
-    FOREIGN KEY (machine_id) REFERENCES machines(id),
-    FOREIGN KEY (created_by) REFERENCES users(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-```
-
-### tracking_logs
-
-Stores GPS tracking data for drivers.
-
-```sql
-CREATE TABLE tracking_logs (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    driver_id BIGINT UNSIGNED NOT NULL,
-    job_id BIGINT UNSIGNED NULL,
-    latitude DECIMAL(10, 8) NOT NULL,
-    longitude DECIMAL(11, 8) NOT NULL,
-    accuracy DECIMAL(6, 2) NULL,
-    speed DECIMAL(6, 2) NULL,
-    heading DECIMAL(5, 2) NULL,
-    recorded_at TIMESTAMP NOT NULL,
-
-    INDEX idx_driver_id (driver_id),
-    INDEX idx_job_id (job_id),
-    INDEX idx_recorded_at (recorded_at),
-    FOREIGN KEY (driver_id) REFERENCES drivers(id) ON DELETE CASCADE,
-    FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-```
-
-### invoices
-
-Stores billing invoices.
-
-```sql
-CREATE TABLE invoices (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    organization_id BIGINT UNSIGNED NOT NULL,
-    job_id BIGINT UNSIGNED NOT NULL,
-    customer_id BIGINT UNSIGNED NOT NULL,
-    invoice_number VARCHAR(50) NOT NULL UNIQUE,
-    amount DECIMAL(12, 2) NOT NULL,
-    tax DECIMAL(12, 2) DEFAULT 0.00,
-    discount DECIMAL(12, 2) DEFAULT 0.00,
-    total DECIMAL(12, 2) NOT NULL,
-    status ENUM('draft', 'sent', 'paid', 'overdue', 'cancelled') DEFAULT 'draft',
-    pdf_path VARCHAR(500) NULL,
-    issued_at TIMESTAMP NULL,
-    due_at TIMESTAMP NULL,
-    paid_at TIMESTAMP NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-    INDEX idx_organization_id (organization_id),
-    INDEX idx_job_id (job_id),
-    INDEX idx_customer_id (customer_id),
-    INDEX idx_invoice_number (invoice_number),
-    INDEX idx_status (status),
-    INDEX idx_issued_at (issued_at),
-    FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
-    FOREIGN KEY (job_id) REFERENCES jobs(id),
-    FOREIGN KEY (customer_id) REFERENCES customers(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-```
-
-### payments
-
-Stores payment transactions.
-
-```sql
-CREATE TABLE payments (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    organization_id BIGINT UNSIGNED NOT NULL,
-    invoice_id BIGINT UNSIGNED NOT NULL,
-    customer_id BIGINT UNSIGNED NOT NULL,
-    amount DECIMAL(12, 2) NOT NULL,
-    payment_method ENUM('cash', 'bank_transfer', 'mobile_payment', 'credit') NOT NULL,
-    reference_number VARCHAR(100) NULL,
-    payment_date TIMESTAMP NOT NULL,
-    created_by BIGINT UNSIGNED NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-    INDEX idx_organization_id (organization_id),
-    INDEX idx_invoice_id (invoice_id),
-    INDEX idx_customer_id (customer_id),
-    INDEX idx_payment_date (payment_date),
-    FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
-    FOREIGN KEY (invoice_id) REFERENCES invoices(id),
-    FOREIGN KEY (customer_id) REFERENCES customers(id),
-    FOREIGN KEY (created_by) REFERENCES users(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-```
-
-### expenses
-
-Stores expense records.
-
-```sql
-CREATE TABLE expenses (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    organization_id BIGINT UNSIGNED NOT NULL,
-    job_id BIGINT UNSIGNED NULL,
-    driver_id BIGINT UNSIGNED NULL,
-    machine_id BIGINT UNSIGNED NULL,
-    category ENUM('fuel', 'spare_parts', 'maintenance', 'labor', 'other') NOT NULL,
-    amount DECIMAL(12, 2) NOT NULL,
-    description TEXT NULL,
-    receipt_path VARCHAR(500) NULL,
-    expense_date DATE NOT NULL,
-    created_by BIGINT UNSIGNED NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL,
-
-    INDEX idx_organization_id (organization_id),
-    INDEX idx_job_id (job_id),
-    INDEX idx_driver_id (driver_id),
-    INDEX idx_machine_id (machine_id),
-    INDEX idx_category (category),
-    INDEX idx_expense_date (expense_date),
-    FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
-    FOREIGN KEY (job_id) REFERENCES jobs(id),
-    FOREIGN KEY (driver_id) REFERENCES drivers(id),
-    FOREIGN KEY (machine_id) REFERENCES machines(id),
-    FOREIGN KEY (created_by) REFERENCES users(id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-```
-
-### subscriptions
-
-Stores subscription history.
+Active subscriptions for organizations.
 
 ```sql
 CREATE TABLE subscriptions (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
     organization_id BIGINT UNSIGNED NOT NULL,
-    package ENUM('free', 'basic', 'pro') NOT NULL,
-    amount DECIMAL(10, 2) NOT NULL,
-    starts_at TIMESTAMP NOT NULL,
-    expires_at TIMESTAMP NOT NULL,
+    package_id BIGINT UNSIGNED NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE,
     status ENUM('active', 'expired', 'cancelled') DEFAULT 'active',
+    auto_renew BOOLEAN DEFAULT FALSE,
+    payment_method VARCHAR(50),
+    usage_stats JSON,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-
-    INDEX idx_organization_id (organization_id),
-    INDEX idx_package (package),
+    FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    FOREIGN KEY (package_id) REFERENCES packages(id),
+    INDEX idx_organization (organization_id),
+    INDEX idx_package (package_id),
     INDEX idx_status (status),
-    INDEX idx_expires_at (expires_at),
-    FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    INDEX idx_dates (start_date, end_date)
+);
 ```
 
-### audit_logs
+**Usage Stats JSON Example:**
 
-Stores audit trail for critical operations.
+```json
+{
+  "measurements_this_month": 45,
+  "exports_this_month": 12,
+  "active_drivers": 3,
+  "storage_used_mb": 512
+}
+```
+
+---
+
+### 5. land_plots
+
+Measured land parcels with GPS coordinates.
+
+```sql
+CREATE TABLE land_plots (
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    user_id BIGINT UNSIGNED NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    area_acres DECIMAL(12, 4) NOT NULL,
+    area_hectares DECIMAL(12, 4) NOT NULL,
+    area_square_meters DECIMAL(12, 2) NOT NULL,
+    perimeter_meters DECIMAL(12, 2),
+    coordinates JSON NOT NULL,
+    center_latitude DECIMAL(10, 8) NOT NULL,
+    center_longitude DECIMAL(11, 8) NOT NULL,
+    location GEOMETRY NOT NULL, -- Spatial data
+    measurement_method ENUM('walk_around', 'manual_points') NOT NULL,
+    accuracy_meters DECIMAL(6, 2),
+    measured_at TIMESTAMP NOT NULL,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL,
+    FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    INDEX idx_organization (organization_id),
+    INDEX idx_user (user_id),
+    SPATIAL INDEX idx_location (location),
+    INDEX idx_measured_at (measured_at)
+);
+```
+
+**Coordinates JSON Example:**
+
+```json
+{
+  "type": "Polygon",
+  "coordinates": [
+    [
+      [79.8612, 6.9271],
+      [79.8615, 6.9271],
+      [79.8615, 6.9268],
+      [79.8612, 6.9268],
+      [79.8612, 6.9271]
+    ]
+  ]
+}
+```
+
+---
+
+### 6. jobs
+
+Field work jobs with assignments.
+
+```sql
+CREATE TABLE jobs (
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    land_plot_id BIGINT UNSIGNED,
+    driver_id BIGINT UNSIGNED,
+    created_by BIGINT UNSIGNED NOT NULL,
+    customer_name VARCHAR(255) NOT NULL,
+    customer_phone VARCHAR(20),
+    customer_address TEXT,
+    job_type ENUM('plowing', 'harvesting', 'spraying', 'seeding', 'other') NOT NULL,
+    status ENUM('pending', 'assigned', 'in_progress', 'completed', 'cancelled') DEFAULT 'pending',
+    priority ENUM('low', 'medium', 'high') DEFAULT 'medium',
+    scheduled_date DATE,
+    start_time TIMESTAMP NULL,
+    end_time TIMESTAMP NULL,
+    duration_hours DECIMAL(6, 2),
+    rate_per_unit DECIMAL(10, 2),
+    total_amount DECIMAL(10, 2),
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL,
+    FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    FOREIGN KEY (land_plot_id) REFERENCES land_plots(id) ON DELETE SET NULL,
+    FOREIGN KEY (driver_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES users(id),
+    INDEX idx_organization (organization_id),
+    INDEX idx_land_plot (land_plot_id),
+    INDEX idx_driver (driver_id),
+    INDEX idx_status (status),
+    INDEX idx_scheduled_date (scheduled_date)
+);
+```
+
+---
+
+### 7. gps_tracking
+
+GPS tracking logs for drivers and jobs.
+
+```sql
+CREATE TABLE gps_tracking (
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    user_id BIGINT UNSIGNED NOT NULL,
+    job_id BIGINT UNSIGNED,
+    latitude DECIMAL(10, 8) NOT NULL,
+    longitude DECIMAL(11, 8) NOT NULL,
+    altitude DECIMAL(8, 2),
+    accuracy DECIMAL(6, 2),
+    speed DECIMAL(6, 2),
+    heading DECIMAL(5, 2),
+    location POINT NOT NULL, -- Spatial data
+    timestamp TIMESTAMP NOT NULL,
+    battery_level INT,
+    is_manual BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE SET NULL,
+    INDEX idx_organization (organization_id),
+    INDEX idx_user (user_id),
+    INDEX idx_job (job_id),
+    INDEX idx_timestamp (timestamp),
+    SPATIAL INDEX idx_location (location)
+);
+```
+
+---
+
+### 8. invoices
+
+Billing invoices for completed jobs.
+
+```sql
+CREATE TABLE invoices (
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    job_id BIGINT UNSIGNED NOT NULL,
+    invoice_number VARCHAR(50) UNIQUE NOT NULL,
+    customer_name VARCHAR(255) NOT NULL,
+    customer_email VARCHAR(255),
+    customer_phone VARCHAR(20),
+    subtotal DECIMAL(10, 2) NOT NULL,
+    tax_amount DECIMAL(10, 2) DEFAULT 0.00,
+    discount_amount DECIMAL(10, 2) DEFAULT 0.00,
+    total_amount DECIMAL(10, 2) NOT NULL,
+    currency VARCHAR(3) DEFAULT 'LKR',
+    status ENUM('draft', 'sent', 'paid', 'overdue', 'cancelled') DEFAULT 'draft',
+    issued_at DATE NOT NULL,
+    due_date DATE,
+    paid_at TIMESTAMP NULL,
+    pdf_url VARCHAR(500),
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    FOREIGN KEY (job_id) REFERENCES jobs(id),
+    INDEX idx_organization (organization_id),
+    INDEX idx_job (job_id),
+    INDEX idx_invoice_number (invoice_number),
+    INDEX idx_status (status),
+    INDEX idx_issued_at (issued_at)
+);
+```
+
+---
+
+### 9. payments
+
+Payment records for invoices.
+
+```sql
+CREATE TABLE payments (
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    invoice_id BIGINT UNSIGNED NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    method ENUM('cash', 'bank_transfer', 'cheque', 'mobile_money', 'card') NOT NULL,
+    reference VARCHAR(100),
+    transaction_id VARCHAR(100),
+    notes TEXT,
+    paid_at TIMESTAMP NOT NULL,
+    received_by BIGINT UNSIGNED,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    FOREIGN KEY (invoice_id) REFERENCES invoices(id),
+    FOREIGN KEY (received_by) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_organization (organization_id),
+    INDEX idx_invoice (invoice_id),
+    INDEX idx_paid_at (paid_at)
+);
+```
+
+---
+
+### 10. expenses
+
+Operational expenses tracking.
+
+```sql
+CREATE TABLE expenses (
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    job_id BIGINT UNSIGNED,
+    user_id BIGINT UNSIGNED NOT NULL,
+    category ENUM('fuel', 'maintenance', 'parts', 'labor', 'transport', 'other') NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    currency VARCHAR(3) DEFAULT 'LKR',
+    description TEXT NOT NULL,
+    vendor_name VARCHAR(255),
+    receipt_url VARCHAR(500),
+    expense_date DATE NOT NULL,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL,
+    FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE SET NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    INDEX idx_organization (organization_id),
+    INDEX idx_job (job_id),
+    INDEX idx_user (user_id),
+    INDEX idx_category (category),
+    INDEX idx_expense_date (expense_date)
+);
+```
+
+---
+
+### 11. sync_logs
+
+Offline sync tracking for mobile devices.
+
+```sql
+CREATE TABLE sync_logs (
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    organization_id BIGINT UNSIGNED NOT NULL,
+    user_id BIGINT UNSIGNED NOT NULL,
+    device_id VARCHAR(100) NOT NULL,
+    entity_type VARCHAR(50) NOT NULL,
+    entity_id BIGINT UNSIGNED,
+    action ENUM('create', 'update', 'delete') NOT NULL,
+    payload JSON,
+    status ENUM('pending', 'success', 'failed', 'conflict') DEFAULT 'pending',
+    error_message TEXT,
+    synced_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_organization (organization_id),
+    INDEX idx_user (user_id),
+    INDEX idx_device (device_id),
+    INDEX idx_status (status)
+);
+```
+
+---
+
+### 12. audit_logs
+
+Audit trail for sensitive operations.
 
 ```sql
 CREATE TABLE audit_logs (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT UNSIGNED NULL,
-    organization_id BIGINT UNSIGNED NULL,
+    id BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+    organization_id BIGINT UNSIGNED,
+    user_id BIGINT UNSIGNED,
     action VARCHAR(100) NOT NULL,
-    entity_type VARCHAR(100) NOT NULL,
-    entity_id BIGINT UNSIGNED NULL,
-    old_values JSON NULL,
-    new_values JSON NULL,
-    ip_address VARCHAR(45) NULL,
-    user_agent TEXT NULL,
+    entity_type VARCHAR(50) NOT NULL,
+    entity_id BIGINT UNSIGNED,
+    old_values JSON,
+    new_values JSON,
+    ip_address VARCHAR(45),
+    user_agent TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    INDEX idx_user_id (user_id),
-    INDEX idx_organization_id (organization_id),
-    INDEX idx_entity (entity_type, entity_id),
-    INDEX idx_action (action),
-    INDEX idx_created_at (created_at),
+    FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    INDEX idx_organization (organization_id),
+    INDEX idx_user (user_id),
+    INDEX idx_entity (entity_type, entity_id),
+    INDEX idx_created_at (created_at)
+);
 ```
 
-### password_resets
-
-Stores password reset tokens.
-
-```sql
-CREATE TABLE password_resets (
-    email VARCHAR(255) NOT NULL,
-    token VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    INDEX idx_email (email),
-    INDEX idx_token (token)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-```
-
-## Relationships Summary
-
-- **organizations** ↔ **users**: One-to-Many
-- **organizations** ↔ **subscriptions**: One-to-Many
-- **users** ↔ **drivers**: One-to-One
-- **drivers** ↔ **tracking_logs**: One-to-Many
-- **land_measurements** ↔ **jobs**: One-to-Many
-- **jobs** ↔ **invoices**: One-to-One
-- **invoices** ↔ **payments**: One-to-Many
-- **jobs** ↔ **expenses**: One-to-Many
-- **customers** ↔ **jobs**: One-to-Many
-- **machines** ↔ **jobs**: One-to-Many
+---
 
 ## Indexes Strategy
 
-1. **Foreign Keys**: All foreign keys are indexed for join performance
-2. **Search Fields**: Email, phone, invoice_number indexed for lookups
-3. **Status Fields**: Status enum fields indexed for filtering
-4. **Date Fields**: Timestamp fields indexed for range queries
-5. **Spatial Data**: SPATIAL index on coordinates for geographic queries
+### Primary Indexes
 
-## Data Retention
+- All tables have primary key on `id` with AUTO_INCREMENT
+- Unique indexes on email fields, invoice numbers, package slugs
 
-- **Soft Deletes**: Most tables support soft deletes for data recovery
-- **Audit Logs**: Retained for 2 years
-- **Tracking Logs**: Retained for 6 months (configurable)
-- **Deleted Records**: Permanently deleted after 90 days
+### Foreign Key Indexes
 
-## Storage Estimates
+- All foreign key columns are indexed for join performance
+- Cascade deletes configured for organization-level cleanup
 
-For 1000 active organizations:
+### Spatial Indexes
 
-- **users**: ~10,000 rows, ~2 MB
-- **land_measurements**: ~100,000 rows, ~50 MB
-- **jobs**: ~500,000 rows, ~100 MB
-- **tracking_logs**: ~50,000,000 rows, ~5 GB (archived monthly)
-- **invoices**: ~500,000 rows, ~80 MB
-- **Total DB**: ~10 GB/year (excluding tracking logs)
+- `land_plots.location` - for geographic queries
+- `gps_tracking.location` - for position queries
+
+### Composite Indexes (Future Optimization)
+
+```sql
+-- For common queries
+CREATE INDEX idx_jobs_org_status ON jobs(organization_id, status);
+CREATE INDEX idx_invoices_org_status ON invoices(organization_id, status);
+CREATE INDEX idx_user_org_role ON users(organization_id, role, is_active);
+```
+
+---
+
+## Data Relationships Summary
+
+1. **One-to-Many:**
+   - Organization → Users
+   - Organization → Land Plots
+   - Organization → Jobs
+   - Job → Invoices
+   - Invoice → Payments
+   - Job → Expenses
+   - User → GPS Tracking
+
+2. **Many-to-One:**
+   - User → Organization
+   - Subscription → Package
+   - Job → Land Plot
+   - Job → Driver (User)
+
+3. **Optional Relationships:**
+   - Job → Land Plot (can be null for general jobs)
+   - Job → Driver (can be unassigned)
+   - Expense → Job (can be general expense)
+
+---
+
+## Seed Data Requirements
+
+### Initial Packages
+
+```sql
+INSERT INTO packages (name, slug, price, billing_cycle, features, limits) VALUES
+('Free', 'free', 0.00, 'lifetime',
+ '{"measurements": 10, "drivers": 1, "exports_per_month": 5}',
+ '{"max_measurements_per_month": 10, "max_drivers": 1, "max_storage_mb": 100}'),
+('Basic', 'basic', 2500.00, 'monthly',
+ '{"measurements": 100, "drivers": 5, "exports_per_month": 50, "pdf_generation": true}',
+ '{"max_measurements_per_month": 100, "max_drivers": 5, "max_storage_mb": 1024}'),
+('Pro', 'pro', 5000.00, 'monthly',
+ '{"measurements": -1, "drivers": -1, "exports_per_month": -1, "pdf_generation": true, "advanced_reports": true, "api_access": true}',
+ '{"max_measurements_per_month": -1, "max_drivers": -1, "max_storage_mb": 10240}');
+```
+
+### Admin User
+
+```sql
+INSERT INTO organizations (name, email, phone, status) VALUES
+('System Admin', 'admin@geo-ops.lk', '+94770000000', 'active');
+
+INSERT INTO users (organization_id, name, email, password, role, is_active, email_verified_at) VALUES
+(1, 'System Administrator', 'admin@geo-ops.lk', '$2y$10$...', 'admin', TRUE, NOW());
+```
+
+---
+
+## Migration Order
+
+1. `organizations`
+2. `packages`
+3. `users`
+4. `subscriptions`
+5. `land_plots`
+6. `jobs`
+7. `gps_tracking`
+8. `invoices`
+9. `payments`
+10. `expenses`
+11. `sync_logs`
+12. `audit_logs`
+
+---
+
+## Performance Considerations
+
+1. **Partitioning**: Consider partitioning `gps_tracking` and `audit_logs` by date
+2. **Archiving**: Move old records (>1 year) to archive tables
+3. **Indexing**: Monitor slow queries and add indexes as needed
+4. **Spatial Queries**: Use spatial functions for geographic searches
+5. **JSON Indexing**: MySQL 8.0+ supports functional indexes on JSON fields
+6. **Read Replicas**: Use for reporting queries to reduce master load
+
+---
+
+## Backup Strategy
+
+1. **Daily Automated Backups**: Full database backup at midnight
+2. **Point-in-Time Recovery**: Binary log enabled
+3. **Retention**: 30 days for daily, 12 months for monthly
+4. **Testing**: Monthly restore test on staging environment
+5. **Off-site Storage**: Encrypted backups stored in cloud
+
+---
+
+This schema provides a solid foundation for the GPS Field Management Platform with proper normalization, relationships, and scalability considerations.

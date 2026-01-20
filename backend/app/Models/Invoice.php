@@ -1,59 +1,56 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Invoice extends Model
 {
-    use HasFactory, SoftDeletes;
-
     protected $fillable = [
         'organization_id',
-        'customer_id',
-        'job_id',
+        'field_job_id',
         'invoice_number',
+        'customer_name',
+        'customer_email',
+        'customer_phone',
         'subtotal',
-        'tax',
-        'total',
+        'tax_amount',
+        'discount_amount',
+        'total_amount',
+        'currency',
         'status',
         'issued_at',
-        'due_at',
+        'due_date',
         'paid_at',
+        'pdf_url',
+        'notes',
     ];
 
-    protected $casts = [
-        'subtotal' => 'decimal:2',
-        'tax' => 'decimal:2',
-        'total' => 'decimal:2',
-        'issued_at' => 'datetime',
-        'due_at' => 'datetime',
-        'paid_at' => 'datetime',
-    ];
-
-    const STATUS_DRAFT = 'draft';
-    const STATUS_SENT = 'sent';
-    const STATUS_PAID = 'paid';
-    const STATUS_OVERDUE = 'overdue';
-    const STATUS_CANCELLED = 'cancelled';
+    protected function casts(): array
+    {
+        return [
+            'subtotal' => 'decimal:2',
+            'tax_amount' => 'decimal:2',
+            'discount_amount' => 'decimal:2',
+            'total_amount' => 'decimal:2',
+            'issued_at' => 'date',
+            'due_date' => 'date',
+            'paid_at' => 'datetime',
+        ];
+    }
 
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
     }
 
-    public function customer(): BelongsTo
+    public function fieldJob(): BelongsTo
     {
-        return $this->belongsTo(Customer::class);
-    }
-
-    public function job(): BelongsTo
-    {
-        return $this->belongsTo(Job::class);
+        return $this->belongsTo(FieldJob::class);
     }
 
     public function payments(): HasMany
@@ -61,19 +58,13 @@ class Invoice extends Model
         return $this->hasMany(Payment::class);
     }
 
-    public function scopeForOrganization($query, int $organizationId)
+    public function scopeOrganization($query, int $organizationId)
     {
         return $query->where('organization_id', $organizationId);
     }
 
-    public function scopeByStatus($query, string $status)
+    public function scopeStatus($query, string $status)
     {
         return $query->where('status', $status);
-    }
-
-    public function scopeOverdue($query)
-    {
-        return $query->where('status', '!=', self::STATUS_PAID)
-                     ->where('due_at', '<', now());
     }
 }

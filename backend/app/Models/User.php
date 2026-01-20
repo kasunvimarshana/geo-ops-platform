@@ -1,133 +1,109 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
 {
     use HasFactory, Notifiable, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
+        'organization_id',
         'name',
         'email',
-        'password',
         'phone',
+        'password',
         'role',
-        'organization_id',
+        'avatar_url',
+        'is_active',
         'email_verified_at',
+        'last_login_at',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'last_login_at' => 'datetime',
+            'password' => 'hashed',
+            'is_active' => 'boolean',
+        ];
+    }
 
-    /**
-     * Get the identifier that will be stored in the subject claim of the JWT.
-     *
-     * @return mixed
-     */
     public function getJWTIdentifier()
     {
         return $this->getKey();
     }
 
-    /**
-     * Return a key value array, containing any custom claims to be added to the JWT.
-     *
-     * @return array
-     */
-    public function getJWTCustomClaims()
+    public function getJWTCustomClaims(): array
     {
         return [
-            'role' => $this->role,
             'organization_id' => $this->organization_id,
+            'role' => $this->role,
         ];
     }
 
-    /**
-     * Get the organization that owns the user.
-     */
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
     }
 
-    /**
-     * Get the driver profile if user is a driver.
-     */
-    public function driver(): HasOne
+    public function landPlots(): HasMany
     {
-        return $this->hasOne(Driver::class);
+        return $this->hasMany(LandPlot::class);
     }
 
-    /**
-     * Check if user has a specific role.
-     */
-    public function hasRole(string|array $roles): bool
+    public function drivingJobs(): HasMany
     {
-        if (is_array($roles)) {
-            return in_array($this->role, $roles);
-        }
-        return $this->role === $roles;
+        return $this->hasMany(FieldJob::class, 'driver_id');
     }
 
-    /**
-     * Check if user is admin.
-     */
-    public function isAdmin(): bool
+    public function createdJobs(): HasMany
     {
-        return $this->role === 'admin';
+        return $this->hasMany(FieldJob::class, 'created_by');
     }
 
-    /**
-     * Check if user is owner.
-     */
-    public function isOwner(): bool
+    public function gpsTracking(): HasMany
     {
-        return $this->role === 'owner';
+        return $this->hasMany(GpsTracking::class);
     }
 
-    /**
-     * Check if user is driver.
-     */
-    public function isDriver(): bool
+    public function expenses(): HasMany
     {
-        return $this->role === 'driver';
+        return $this->hasMany(Expense::class);
     }
 
-    /**
-     * Scope a query to only include users of a given role.
-     */
-    public function scopeRole($query, string $role)
+    public function receivedPayments(): HasMany
+    {
+        return $this->hasMany(Payment::class, 'received_by');
+    }
+
+    public function scopeActive($query): mixed
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeRole($query, string $role): mixed
     {
         return $query->where('role', $role);
+    }
+
+    public function scopeOrganization($query, int $organizationId): mixed
+    {
+        return $query->where('organization_id', $organizationId);
     }
 }

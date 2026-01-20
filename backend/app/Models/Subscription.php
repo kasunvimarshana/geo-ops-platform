@@ -1,59 +1,57 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Subscription extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'organization_id',
-        'package',
+        'package_id',
+        'start_date',
+        'end_date',
         'status',
-        'starts_at',
-        'ends_at',
-        'amount',
+        'auto_renew',
         'payment_method',
-        'payment_reference',
+        'usage_stats',
     ];
 
-    protected $casts = [
-        'starts_at' => 'datetime',
-        'ends_at' => 'datetime',
-        'amount' => 'decimal:2',
-    ];
-
-    const PACKAGE_FREE = 'free';
-    const PACKAGE_BASIC = 'basic';
-    const PACKAGE_PRO = 'pro';
-
-    const STATUS_ACTIVE = 'active';
-    const STATUS_EXPIRED = 'expired';
-    const STATUS_CANCELLED = 'cancelled';
+    protected function casts(): array
+    {
+        return [
+            'start_date' => 'date',
+            'end_date' => 'date',
+            'auto_renew' => 'boolean',
+            'usage_stats' => 'array',
+        ];
+    }
 
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
     }
 
+    public function package(): BelongsTo
+    {
+        return $this->belongsTo(Package::class);
+    }
+
     public function scopeActive($query)
     {
-        return $query->where('status', self::STATUS_ACTIVE)
-                     ->where('ends_at', '>=', now());
+        return $query->where('status', 'active');
     }
 
-    public function scopeExpired($query)
+    public function scopeStatus($query, string $status)
     {
-        return $query->where('ends_at', '<', now());
+        return $query->where('status', $status);
     }
 
-    public function isActive(): bool
+    public function scopeOrganization($query, int $organizationId)
     {
-        return $this->status === self::STATUS_ACTIVE && 
-               $this->ends_at->isFuture();
+        return $query->where('organization_id', $organizationId);
     }
 }

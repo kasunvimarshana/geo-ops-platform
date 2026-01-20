@@ -1,84 +1,66 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Expense extends Model
 {
-    use HasFactory, SoftDeletes;
+    use SoftDeletes;
 
     protected $fillable = [
         'organization_id',
-        'machine_id',
-        'driver_id',
+        'field_job_id',
+        'user_id',
         'category',
         'amount',
+        'currency',
         'description',
-        'receipt_path',
+        'vendor_name',
+        'receipt_url',
         'expense_date',
-        'status',
-        'recorded_by',
-        'approved_by',
-        'approved_at',
+        'notes',
     ];
 
-    protected $casts = [
-        'amount' => 'decimal:2',
-        'expense_date' => 'date',
-        'approved_at' => 'datetime',
-    ];
-
-    const CATEGORY_FUEL = 'fuel';
-    const CATEGORY_PARTS = 'parts';
-    const CATEGORY_MAINTENANCE = 'maintenance';
-    const CATEGORY_LABOR = 'labor';
-    const CATEGORY_OTHER = 'other';
-
-    const STATUS_PENDING = 'pending';
-    const STATUS_APPROVED = 'approved';
-    const STATUS_REJECTED = 'rejected';
+    protected function casts(): array
+    {
+        return [
+            'amount' => 'decimal:2',
+            'expense_date' => 'date',
+        ];
+    }
 
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
     }
 
-    public function machine(): BelongsTo
+    public function fieldJob(): BelongsTo
     {
-        return $this->belongsTo(Machine::class);
+        return $this->belongsTo(FieldJob::class);
     }
 
-    public function driver(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(Driver::class);
+        return $this->belongsTo(User::class);
     }
 
-    public function recorder(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'recorded_by');
-    }
-
-    public function approver(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'approved_by');
-    }
-
-    public function scopeForOrganization($query, int $organizationId)
+    public function scopeOrganization($query, int $organizationId)
     {
         return $query->where('organization_id', $organizationId);
     }
 
-    public function scopeByCategory($query, string $category)
+    public function scopeCategory($query, string $category)
     {
         return $query->where('category', $category);
     }
 
-    public function scopeByStatus($query, string $status)
+    public function scopeUser($query, int $userId)
     {
-        return $query->where('status', $status);
+        return $query->where('user_id', $userId);
     }
 }

@@ -1,90 +1,81 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Organization extends Model
 {
-    use HasFactory, SoftDeletes;
+    use SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'name',
-        'owner_id',
-        'subscription_package',
-        'subscription_expires_at',
+        'email',
+        'phone',
+        'address',
+        'logo_url',
         'settings',
+        'status',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [
-        'settings' => 'array',
-        'subscription_expires_at' => 'datetime',
-    ];
-
-    /**
-     * Get the owner of the organization.
-     */
-    public function owner(): BelongsTo
+    protected function casts(): array
     {
-        return $this->belongsTo(User::class, 'owner_id');
+        return [
+            'settings' => 'array',
+        ];
     }
 
-    /**
-     * Get the users for the organization.
-     */
     public function users(): HasMany
     {
         return $this->hasMany(User::class);
     }
 
-    /**
-     * Get the subscriptions for the organization.
-     */
     public function subscriptions(): HasMany
     {
         return $this->hasMany(Subscription::class);
     }
 
-    /**
-     * Get the current active subscription.
-     */
-    public function currentSubscription()
+    public function landPlots(): HasMany
     {
-        return $this->hasOne(Subscription::class)
-            ->where('status', 'active')
-            ->latest('starts_at');
+        return $this->hasMany(LandPlot::class);
     }
 
-    /**
-     * Check if subscription is active.
-     */
-    public function hasActiveSubscription(): bool
+    public function fieldJobs(): HasMany
     {
-        return $this->subscription_expires_at && 
-               $this->subscription_expires_at->isFuture();
+        return $this->hasMany(FieldJob::class);
     }
 
-    /**
-     * Get subscription limits based on package.
-     */
-    public function getSubscriptionLimits(): array
+    public function gpsTracking(): HasMany
     {
-        $limits = config('geo-ops.subscription_limits');
-        
-        return $limits[$this->subscription_package] ?? $limits['free'];
+        return $this->hasMany(GpsTracking::class);
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(Expense::class);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    public function scopeStatus($query, string $status)
+    {
+        return $query->where('status', $status);
     }
 }

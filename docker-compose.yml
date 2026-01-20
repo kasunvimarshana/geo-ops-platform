@@ -1,0 +1,91 @@
+version: "3.8"
+
+services:
+  # Laravel Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: geo-ops_backend
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./backend:/var/www
+      - ./backend/storage:/var/www/storage
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_HOST=mysql
+      - DB_DATABASE=geo-ops_gps_manager
+      - DB_USERNAME=geo-ops
+      - DB_PASSWORD=secret
+      - REDIS_HOST=redis
+      - QUEUE_CONNECTION=redis
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - geo-ops-network
+    command: php artisan serve --host=0.0.0.0 --port=8000
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: geo-ops_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: geo-ops_manager
+      MYSQL_USER: geo-ops
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: rootsecret
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - geo-ops-network
+
+  # Redis for Cache and Queue
+  redis:
+    image: redis:7-alpine
+    container_name: geo-ops_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - geo-ops-network
+
+  # Queue Worker
+  queue:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: geo-ops_queue
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./backend:/var/www
+    environment:
+      - APP_ENV=local
+      - DB_HOST=mysql
+      - DB_DATABASE=geo-ops_manager
+      - DB_USERNAME=geo-ops
+      - DB_PASSWORD=secret
+      - REDIS_HOST=redis
+      - QUEUE_CONNECTION=redis
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - geo-ops-network
+    command: php artisan queue:work --tries=3 --timeout=90
+
+networks:
+  geo-ops-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
